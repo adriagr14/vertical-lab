@@ -132,13 +132,31 @@ Sections.plan = function (container) {
 
     if (dia.finisher) body.appendChild(el("p", { class: "mt-2 dim", style: "font-size:.86rem", text: "🏁 " + dia.finisher }));
 
-    // Acciones: copiar a Heavy (si es día de fuerza/potencia) + completar
+    // Acciones: copiar / crear rutina en Hevy (días de gimnasio) + completar
+    const hevyResult = el("div", { class: "mt-2" });
     const actions = el("div", { class: "flex flex-wrap mt-2", style: "gap:8px" });
     if (dia.tipo !== "pista") {
       actions.appendChild(el("button", {
         class: "btn btn-sm", text: "📋 Copiar a Heavy",
         onclick: () => VLHeavy.copySession(toHeavySession(week, dia))
       }));
+      const createBtn = el("button", { class: "btn btn-sm", text: "➕ Crear rutina en Hevy" });
+      createBtn.addEventListener("click", async () => {
+        const apiKey = get("settings.hevyApiKey");
+        if (!apiKey) { VL.toast("Pega tu clave de Hevy en Gimnasio primero"); window.App.go("gimnasio"); return; }
+        const prev = createBtn.textContent; createBtn.disabled = true; createBtn.textContent = "Creando…";
+        hevyResult.innerHTML = "";
+        try {
+          const res = await VLHevyRoutines.createRoutine(apiKey, week, dia);
+          createBtn.disabled = false; createBtn.textContent = prev;
+          VL.toast(res.created ? "✅ Rutina creada en Hevy" : "⚠️ " + res.msg);
+          hevyResult.appendChild(renderHevyResult(res));
+        } catch (err) {
+          createBtn.disabled = false; createBtn.textContent = prev;
+          hevyResult.appendChild(el("div", { class: "badge warn", text: "⚠️ " + err.message }));
+        }
+      });
+      actions.appendChild(createBtn);
     }
     actions.appendChild(el("button", {
       class: "btn btn-sm " + (done ? "btn-ghost" : "btn-primary"),
@@ -146,6 +164,7 @@ Sections.plan = function (container) {
       onclick: () => toggleDone(week, dia, key)
     }));
     body.appendChild(actions);
+    body.appendChild(hevyResult);
 
     // RPE + nota (si está hecha o al marcar)
     const rpeInput = el("input", { type: "number", min: "1", max: "10", step: "0.5", placeholder: "RPE", value: rec.rpe || "", style: "max-width:90px" });
@@ -190,5 +209,18 @@ Sections.plan = function (container) {
         ejercicios: g.ejercicios.map(e => ({ nombre: e.nombre, series: e.series, reps: e.reps, intensidad: e.intensidad, descanso: e.descanso }))
       }))
     };
+  }
+
+  function renderHevyResult(res) {
+    const box = el("div", { class: "card", style: "background:var(--bg-3);padding:11px;margin:0" });
+    if (res.created) box.appendChild(el("div", { class: "badge ok", text: "✅ Rutina creada: " + (res.matched.length) + " ejercicios" }));
+    else box.appendChild(el("div", { class: "badge warn", text: res.msg || "No se creó la rutina" }));
+    if (res.matched && res.matched.length) {
+      box.appendChild(el("div", { class: "mt-1", style: "font-size:.82rem;color:var(--text-dim)", text: "Añadidos: " + res.matched.map(m => m.hevy).join(", ") }));
+    }
+    if (res.unmatched && res.unmatched.length) {
+      box.appendChild(el("div", { class: "mt-1", style: "font-size:.82rem;color:var(--warn)", text: "➕ Añade tú en Hevy (no encontrados): " + res.unmatched.join(", ") }));
+    }
+    return box;
   }
 };
