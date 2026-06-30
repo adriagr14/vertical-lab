@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0d0f14">
+  <title>Vertical Lab · Pretemporada 8 semanas</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <!-- ===== Header móvil ===== -->
+  <header class="topbar">
+    <button id="menuToggle" class="menu-toggle" aria-label="Menú">☰</button>
+    <div class="brand">
+      <span class="brand-mark">▲</span>
+      <span class="brand-name">Vertical&nbsp;Lab</span>
+    </div>
+    <div class="topbar-right" id="topbarContext">—</div>
+  </header>
+
+  <div class="layout">
+    <!-- ===== Navegación lateral ===== -->
+    <nav id="sidebar" class="sidebar" aria-label="Navegación principal">
+      <div class="sidebar-head">
+        <span class="brand-mark">▲</span>
+        <div>
+          <div class="brand-name">Vertical Lab</div>
+          <div class="brand-sub">Salto + pretemporada</div>
+        </div>
+      </div>
+      <ul class="nav-list">
+        <li><a href="#dashboard" class="nav-link" data-section="dashboard"><span class="nav-ico">🏠</span> Inicio</a></li>
+        <li><a href="#plan" class="nav-link" data-section="plan"><span class="nav-ico">🗓️</span> Plan 8 semanas</a></li>
+        <li><a href="#tests" class="nav-link" data-section="tests"><span class="nav-ico">📏</span> Tests</a></li>
+        <li><a href="#gimnasio" class="nav-link" data-section="gimnasio"><span class="nav-ico">🏋️</span> Gimnasio &amp; cargas</a></li>
+        <li><a href="#ejercicios" class="nav-link" data-section="ejercicios"><span class="nav-ico">📚</span> Ejercicios</a></li>
+        <li><a href="#baloncesto" class="nav-link" data-section="baloncesto"><span class="nav-ico">🏀</span> Baloncesto</a></li>
+        <li><a href="#guias" class="nav-link" data-section="guias"><span class="nav-ico">📖</span> Guías</a></li>
+        <li><a href="#progreso" class="nav-link" data-section="progreso"><span class="nav-ico">📈</span> Progreso</a></li>
+        <li><a href="#datos" class="nav-link" data-section="datos"><span class="nav-ico">💾</span> Datos</a></li>
+      </ul>
+      <div class="sidebar-foot">
+        <span id="weekBadge" class="badge">Semana —</span>
+      </div>
+    </nav>
+
+    <!-- Backdrop para cerrar el menú en móvil -->
+    <div id="backdrop" class="backdrop"></div>
+
+    <!-- ===== Contenido ===== -->
+    <main id="main" class="main">
+      <section id="section-dashboard" class="section"></section>
+      <section id="section-plan" class="section"></section>
+      <section id="section-tests" class="section"></section>
+      <section id="section-gimnasio" class="section"></section>
+      <section id="section-ejercicios" class="section"></section>
+      <section id="section-baloncesto" class="section"></section>
+      <section id="section-guias" class="section"></section>
+      <section id="section-progreso" class="section"></section>
+      <section id="section-datos" class="section"></section>
+    </main>
+  </div>
+
+  <!-- Toast de avisos -->
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <!-- ===== Chart.js (CDN) ===== -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <!-- ===== Datos (cargados como scripts clásicos para funcionar con file://) ===== -->
+  <script src="data/plan-8-semanas.js"></script>
+  <script src="data/tests-db.js"></script>
+  <script src="data/ejercicios-db.js"></script>
+  <script src="data/baloncesto-db.js"></script>
+  <script src="data/guias-db.js"></script>
+
+  <!-- ===== Lógica ===== -->
+  <script src="js/storage.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/export-heavy.js"></script>
+  <script src="js/heavy-import.js"></script>
+  <script src="js/hevy-sync.js"></script>
+  <script src="js/dashboard.js"></script>
+  <script src="js/plan.js"></script>
+  <script src="js/tests.js"></script>
+  <script src="js/gimnasio.js"></script>
+  <script src="js/ejercicios.js"></script>
+  <script src="js/baloncesto.js"></script>
+  <script src="js/guias.js"></script>
+  <script src="js/progreso.js"></script>
+  <script src="js/datos.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
