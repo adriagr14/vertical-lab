@@ -117,6 +117,32 @@
     return node;
   }
 
+  // Cabecera de acordeón compartida: click + teclado (Enter/Espacio) + aria-expanded.
+  // `content` es un nodo o array de nodos para la izquierda; `body` es el contenedor
+  // que se muestra/oculta (debe llevar la clase "hidden-body" si arranca cerrado).
+  // Devuelve el nodo <head>; head.setOpen(bool) permite abrirlo programáticamente
+  // (p. ej. para enlazar directo a la sesión de hoy desde el dashboard).
+  function accordionHead(content, body, opts = {}) {
+    const chevron = el("span", { class: "muted accordion-chevron", text: "▾", "aria-hidden": "true" });
+    const left = Array.isArray(content) ? content : [content];
+    const startOpen = !!opts.open;
+    function setOpen(open) {
+      body.classList.toggle("hidden-body", !open);
+      head.setAttribute("aria-expanded", open ? "true" : "false");
+    }
+    const head = el("div", {
+      class: "flex-between accordion-head",
+      tabindex: "0",
+      role: "button",
+      "aria-expanded": startOpen ? "true" : "false",
+      onclick: () => setOpen(body.classList.contains("hidden-body")),
+      onkeydown: (e) => { if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") { e.preventDefault(); setOpen(body.classList.contains("hidden-body")); } }
+    }, left.concat([chevron]));
+    head.setOpen = setOpen;
+    if (startOpen) setOpen(true);
+    return head;
+  }
+
   let _toastTimer = null;
   function toast(msg) {
     const t = document.getElementById("toast");
@@ -174,7 +200,7 @@
     load, save, get, set,
     exportJSON, importJSON, reset,
     suppressTouch, onChange, replaceAll,
-    el, toast, todayISO, fmtDate, epley1RM, copyText,
+    el, accordionHead, toast, todayISO, fmtDate, epley1RM, copyText,
     currentWeek, blockForWeek,
     DEFAULT_DB
   };

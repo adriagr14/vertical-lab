@@ -291,13 +291,13 @@ Sections.gimnasio = function (container) {
       history, chart
     ]);
 
-    const head = el("div", { class: "flex-between", style: "cursor:pointer;gap:10px", onclick: () => body.classList.toggle("hidden-body") }, [
+    const head = VL.accordionHead(
       el("div", { style: "min-width:0" }, [
         el("div", { style: "font-weight:700", text: lift.nombre }),
         el("small", { class: "muted", text: lift.grupo + (last ? " · última: " + (lift.bw && !last.weight ? "BW" : last.weight + "kg") + "×" + last.reps + (last.rpe ? " @" + last.rpe : "") : "") })
       ]),
-      el("span", { class: "muted", text: "▾" })
-    ]);
+      body
+    );
 
     return el("div", { class: "card" }, [head, body]);
   }

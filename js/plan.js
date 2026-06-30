@@ -13,6 +13,11 @@ Sections.plan = function (container) {
   if (Sections.plan._week == null) Sections.plan._week = currentWeek() || 1;
   let selWeek = Sections.plan._week;
 
+  // Día a abrir y enfocar automáticamente (lo fija el dashboard al pulsar "Ir al plan").
+  // Se consume una sola vez para no reabrirlo en visitas posteriores a esta sección.
+  const openDayTarget = Sections.plan._openDay;
+  Sections.plan._openDay = null;
+
   // Cabecera
   container.appendChild(el("div", { class: "section-head" }, [
     el("div", { class: "eyebrow", text: "Periodización por bloques · Verkhoshansky" }),
@@ -71,9 +76,13 @@ Sections.plan = function (container) {
   ]));
 
   // Sesiones (acordeón)
+  let targetCard = null;
   wk.dias.forEach(dia => {
-    container.appendChild(renderDay(wk, dia));
+    const card = renderDay(wk, dia);
+    if (openDayTarget != null && dia.dayIndex === openDayTarget) targetCard = card;
+    container.appendChild(card);
   });
+  if (targetCard) requestAnimationFrame(() => targetCard.scrollIntoView({ behavior: "smooth", block: "start" }));
 
   /* ---------- render de un día ---------- */
   function renderDay(week, dia) {
@@ -81,7 +90,8 @@ Sections.plan = function (container) {
     const rec = get("sessions." + key) || {};
     const done = !!rec.done;
 
-    const head = el("div", { class: "flex-between", style: "cursor:pointer;gap:10px", onclick: () => body.classList.toggle("hidden-body") }, [
+    const body = el("div", { class: "mt-2 hidden-body" });
+    const head = VL.accordionHead(
       el("div", { class: "flex", style: "gap:10px;min-width:0" }, [
         el("span", { style: "font-size:1.3rem", text: dia.icono }),
         el("div", { style: "min-width:0" }, [
@@ -92,10 +102,9 @@ Sections.plan = function (container) {
           el("div", { style: "font-weight:700;font-size:.96rem", text: dia.nombre })
         ])
       ]),
-      el("span", { class: "muted", text: "▾" })
-    ]);
-
-    const body = el("div", { class: "mt-2 hidden-body" });
+      body,
+      { open: openDayTarget === dia.dayIndex }
+    );
 
     // Foco
     body.appendChild(el("p", { class: "dim", style: "font-size:.88rem", text: dia.foco }));

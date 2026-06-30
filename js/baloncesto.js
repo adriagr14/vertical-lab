@@ -53,13 +53,13 @@ Sections.baloncesto = function (container) {
       body.appendChild(el("div", { class: "muted mt-2", style: "font-size:.82rem", text: "🎥 Sin vídeo (drill de pista guiado por las claves)." }));
     }
 
-    const head = el("div", { class: "flex-between", style: "cursor:pointer;gap:10px", onclick: () => body.classList.toggle("hidden-body") }, [
+    const head = VL.accordionHead(
       el("div", { style: "min-width:0" }, [
         el("div", { style: "font-weight:700", text: d.nombre }),
         el("small", { class: "muted", text: "Bloque " + d.bloque })
       ]),
-      el("span", { class: "muted", text: "▾" })
-    ]);
+      body
+    );
 
     return el("div", { class: "card" }, [head, body]);
   }

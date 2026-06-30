@@ -64,9 +64,15 @@
     const perLift = {};
     Object.keys(groups).forEach(liftId => {
       const arr = VL.get("lifts." + liftId) || [];
-      const seen = new Set(arr.map(e => e.src).filter(Boolean));
+      // Dedup por FECHA (no por "src"): coherente con heavy-import.js para que
+      // CSV y API no dupliquen el mismo entreno si se usan ambas vías.
+      const seenDates = new Set(arr.map(e => e.date).filter(Boolean));
       let n = 0;
-      Object.values(groups[liftId]).forEach(en => { if (seen.has(en.src)) { skipped++; return; } arr.push(en); added++; n++; });
+      Object.values(groups[liftId]).forEach(en => {
+        if (seenDates.has(en.date)) { skipped++; return; }
+        seenDates.add(en.date);
+        arr.push(en); added++; n++;
+      });
       if (n) { arr.sort((a, b) => a.date.localeCompare(b.date)); VL.set("lifts." + liftId, arr); perLift[liftId] = n; }
     });
     return { added, skipped, perLift };

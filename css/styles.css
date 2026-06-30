@@ -207,6 +207,11 @@ th { color: var(--text-mute); font-size: .76rem; text-transform: uppercase; lett
 .flex { display: flex; gap: 10px; align-items: center; }
 .flex-between { display: flex; gap: 10px; align-items: center; justify-content: space-between; }
 .flex-wrap { flex-wrap: wrap; }
+.accordion-head { cursor: pointer; border-radius: 8px; }
+.accordion-head:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.accordion-head:hover .accordion-chevron { color: var(--text-dim); }
+.accordion-head[aria-expanded="true"] .accordion-chevron { transform: rotate(180deg); }
+.accordion-chevron { display: inline-block; transition: transform .15s ease; }
 .text-c { text-align: center; }
 .divider { height: 1px; background: var(--border); margin: 16px 0; border: 0; }
 .chart-box { position: relative; height: 240px; }

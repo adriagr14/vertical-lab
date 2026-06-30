@@ -27,7 +27,7 @@ Sections.guias = function (container) {
       ]));
     });
 
-    const head = el("div", { class: "flex-between", style: "cursor:pointer;gap:10px", onclick: () => body.classList.toggle("hidden-body") }, [
+    const head = VL.accordionHead(
       el("div", { class: "flex", style: "gap:10px;min-width:0" }, [
         el("span", { style: "font-size:1.4rem", text: g.icono }),
         el("div", { style: "min-width:0" }, [
@@ -35,8 +35,8 @@ Sections.guias = function (container) {
           el("small", { class: "muted", text: g.resumen })
         ])
       ]),
-      el("span", { class: "muted", text: "▾" })
-    ]);
+      body
+    );
 
     return el("div", { class: "card" }, [head, body]);
   }

@@ -17,7 +17,7 @@
 
   function cfg() {
     return {
-      url: (VL.get("settings.supabaseUrl") || "").replace(/\/+$/, ""),
+      url: (VL.get("settings.supabaseUrl") || "").trim().replace(/\/+$/, "").replace(/\/rest\/v1$/, "").replace(/\/+$/, ""),
       key: VL.get("settings.supabaseKey") || "",
       code: VL.get("settings.syncCode") || ""
     };

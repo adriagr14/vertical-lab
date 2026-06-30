@@ -29,7 +29,7 @@ Sections.dashboard = function (container) {
       el("label", { class: "field" }, [el("span", { text: "Fecha de inicio (lunes de la semana 1)" }), input]),
       el("button", {
         class: "btn btn-primary", text: "Activar plan",
-        onclick: () => { set("meta.startDate", input.value); set("meta.createdAt", todayISO()); VL.toast("¡Plan activado!"); window.App.render("dashboard"); }
+        onclick: () => { set("meta.startDate", input.value); set("meta.createdAt", todayISO()); VL.toast("¡Plan activado!"); window.App.render("dashboard"); window.App.updateContext(); }
       })
     ]);
     container.appendChild(card);
@@ -53,7 +53,7 @@ Sections.dashboard = function (container) {
   const todayCard = el("div", { class: "card" });
   todayCard.appendChild(el("div", { class: "flex-between" }, [
     el("div", { class: "card-title mb-0", html: "🎯 Sesión de hoy" }),
-    el("button", { class: "btn btn-sm", text: "Ir al plan →", onclick: () => { Sections.plan._week = week; window.App.go("plan"); } })
+    el("button", { class: "btn btn-sm", text: "Ir al plan →", onclick: () => { Sections.plan._week = week; Sections.plan._openDay = todaySession ? dayIndex : null; window.App.go("plan"); } })
   ]));
   if (todaySession) {
     const key = "w" + week + "d" + dayIndex;

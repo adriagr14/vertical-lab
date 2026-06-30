@@ -75,7 +75,7 @@ Sections.ejercicios = function (container) {
       body.appendChild(el("div", { class: "badge warn mt-2", text: "Vídeo pendiente de verificar" }));
     }
 
-    const head = el("div", { class: "flex-between", style: "cursor:pointer;gap:10px", onclick: () => body.classList.toggle("hidden-body") }, [
+    const head = VL.accordionHead(
       el("div", { class: "flex", style: "gap:10px;min-width:0" }, [
         el("span", { style: "font-size:1.4rem", text: ex.icono }),
         el("div", { style: "min-width:0" }, [
@@ -83,8 +83,8 @@ Sections.ejercicios = function (container) {
           el("small", { class: "muted", text: ex.cat })
         ])
       ]),
-      el("span", { class: "muted", text: "▾" })
-    ]);
+      body
+    );
 
     return el("div", { class: "card" }, [head, body]);
   }

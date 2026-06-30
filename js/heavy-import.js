@@ -136,10 +136,13 @@
 
     Object.keys(groups).forEach(liftId => {
       const arr = VL.get("lifts." + liftId) || [];
-      const existingSrc = new Set(arr.map(e => e.src).filter(Boolean));
+      // Dedup por FECHA (no por "src"): así no importa si el mismo entreno llegó
+      // antes por CSV y ahora por la API de Hevy (o al revés), no se duplica.
+      const existingDates = new Set(arr.map(e => e.date).filter(Boolean));
       let liftAdded = 0;
       Object.values(groups[liftId]).forEach(entry => {
-        if (existingSrc.has(entry.src)) { skipped++; return; }
+        if (existingDates.has(entry.date)) { skipped++; return; }
+        existingDates.add(entry.date);
         arr.push(entry); added++; liftAdded++;
       });
       if (liftAdded) {
