@@ -81,8 +81,11 @@
     // Sección inicial desde el hash o dashboard
     const initial = location.hash.replace("#", "");
     go(SECTIONS.includes(initial) ? initial : "dashboard");
+
+    // Sincronización en la nube (si está configurada)
+    if (window.VLCloud && typeof VLCloud.init === "function") { try { VLCloud.init(); } catch (e) { console.warn(e); } }
   }
 
-  window.App = { go, render, updateContext };
+  window.App = { go, render, updateContext, current: () => current };
   document.addEventListener("DOMContentLoaded", init);
 })();

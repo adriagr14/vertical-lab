@@ -50,13 +50,32 @@
     const v = path.split(".").reduce((o, k) => (o == null ? undefined : o[k]), db);
     return v === undefined ? fallback : v;
   }
+  let _suppressTouch = false;
+  let _onChange = null;
   function set(path, value) {
     const db = load();
     const keys = path.split(".");
     const last = keys.pop();
     const target = keys.reduce((o, k) => (o[k] = o[k] || {}), db);
     target[last] = value;
+    if (!_suppressTouch && path !== "meta.updatedAt") {
+      db.meta = db.meta || {};
+      db.meta.updatedAt = Date.now();
+    }
     save();
+    if (!_suppressTouch && typeof _onChange === "function") { try { _onChange(); } catch (e) {} }
+  }
+  // Ejecuta cambios SIN marcarlos como edición del usuario (seeding, datos de la nube)
+  function suppressTouch(fn) { _suppressTouch = true; try { fn(); } finally { _suppressTouch = false; } }
+  function onChange(cb) { _onChange = cb; }
+  // Sustituye toda la base de datos (desde la nube) sin disparar onChange
+  function replaceAll(obj, updatedAt) {
+    suppressTouch(() => {
+      _db = Object.assign(deepClone(DEFAULT_DB), obj);
+      _db.meta = _db.meta || {};
+      if (updatedAt != null) _db.meta.updatedAt = updatedAt;
+      save();
+    });
   }
 
   /* ---------- Export / Import JSON ---------- */
@@ -154,6 +173,7 @@
   window.VL = {
     load, save, get, set,
     exportJSON, importJSON, reset,
+    suppressTouch, onChange, replaceAll,
     el, toast, todayISO, fmtDate, epley1RM, copyText,
     currentWeek, blockForWeek,
     DEFAULT_DB

@@ -87,12 +87,14 @@ Sections.gimnasio = function (container) {
   /* ---------------- helpers ---------------- */
   function ensureSeed() {
     if (get("meta.liftsSeeded")) return;
-    const base = get("liftBaseline") || {};
-    Object.keys(LIFTS_SEED).forEach(id => {
-      if (!base[id]) base[id] = Object.assign({ date: todayISO() }, LIFTS_SEED[id]);
+    VL.suppressTouch(() => {
+      const base = get("liftBaseline") || {};
+      Object.keys(LIFTS_SEED).forEach(id => {
+        if (!base[id]) base[id] = Object.assign({ date: todayISO() }, LIFTS_SEED[id]);
+      });
+      set("liftBaseline", base);
+      set("meta.liftsSeeded", true);
     });
-    set("liftBaseline", base);
-    set("meta.liftsSeeded", true);
   }
   function histOf(id) { return (get("lifts." + id) || []).slice().sort((a, b) => a.date.localeCompare(b.date)); }
   function baselineOf(id) { return (get("liftBaseline") || {})[id] || null; }
