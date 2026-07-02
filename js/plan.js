@@ -84,6 +84,9 @@ Sections.plan = function (container) {
   });
   if (targetCard) requestAnimationFrame(() => targetCard.scrollIntoView({ behavior: "smooth", block: "start" }));
 
+  // Entrenamientos opcionales de la semana
+  container.appendChild(renderExtras(wk));
+
   /* ---------- render de un día ---------- */
   function renderDay(week, dia) {
     const key = "w" + week.n + "d" + dia.dayIndex;
@@ -183,7 +186,9 @@ Sections.plan = function (container) {
       r.rpe = rpeInput.value ? parseFloat(rpeInput.value) : null;
       r.note = noteInput.value;
       set("sessions." + key, r);
-      VL.toast("Guardado"); Sections.plan(container);
+      VL.toast("Guardado");
+      Sections.plan._openDay = dia.dayIndex;   // mantener el día abierto tras re-render
+      Sections.plan(container);
     }});
     body.appendChild(el("div", { class: "row mt-2" }, [rpeInput, noteInput, el("div", { style: "flex:0 0 auto" }, saveBtn)]));
 
@@ -195,6 +200,7 @@ Sections.plan = function (container) {
       if (r.done && !r.date) r.date = VL.todayISO();
       set("sessions." + key, r);
       VL.toast(r.done ? "Sesión completada 💪" : "Sesión desmarcada");
+      Sections.plan._openDay = dia.dayIndex;   // mantener el día abierto tras re-render
       Sections.plan(container);
     }
   }
@@ -218,6 +224,84 @@ Sections.plan = function (container) {
         ejercicios: g.ejercicios.map(e => ({ nombre: e.nombre, series: e.series, reps: e.reps, intensidad: e.intensidad, descanso: e.descanso }))
       }))
     };
+  }
+
+  /* ---------- entrenamientos opcionales de la semana ---------- */
+  function renderExtras(week) {
+    const wkey = "w" + week.n;
+    const items = get("extras." + wkey) || [];
+
+    const TIPOS = [
+      { id: "partido", icono: "🏀", nombre: "Partido / práctica" },
+      { id: "carrera", icono: "🏃", nombre: "Carrera / cardio" },
+      { id: "gym", icono: "🏋️", nombre: "Gimnasio extra" },
+      { id: "movilidad", icono: "🧘", nombre: "Movilidad / recuperación" },
+      { id: "otro", icono: "➕", nombre: "Otro" }
+    ];
+    const tipoDe = id => TIPOS.find(t => t.id === id) || TIPOS[TIPOS.length - 1];
+
+    const card = el("div", { class: "card", style: "border-style:dashed" });
+    card.appendChild(el("div", { class: "card-title mb-0", html: "➕ Entrenamientos opcionales · Semana " + week.n }));
+    card.appendChild(el("p", { class: "mt-1 dim", style: "font-size:.86rem", text: "Sesiones fuera del plan: partidos, práctica de equipo, carrera, gimnasio extra… Cuidado en semanas de descarga: los extras también son carga." }));
+
+    // Lista de extras existentes
+    if (items.length) {
+      const list = el("div", { class: "mt-1" });
+      items.forEach((it, idx) => {
+        const t = tipoDe(it.tipo);
+        list.appendChild(el("div", { class: "flex-between", style: "gap:10px;padding:8px 0;border-bottom:1px solid var(--border)" }, [
+          el("div", { class: "flex", style: "gap:10px;min-width:0" }, [
+            el("span", { style: "font-size:1.2rem", text: t.icono }),
+            el("div", { style: "min-width:0" }, [
+              el("div", { style: "font-weight:600;font-size:.92rem", text: it.nombre || t.nombre }),
+              el("small", { class: "muted", text: t.nombre + (it.done && it.date ? " · ✓ " + VL.fmtDate(it.date) : "") })
+            ])
+          ]),
+          el("div", { class: "flex", style: "gap:6px;flex:0 0 auto" }, [
+            el("button", {
+              class: "btn btn-sm " + (it.done ? "btn-ghost" : ""),
+              text: it.done ? "✓ Hecho" : "Marcar",
+              onclick: () => {
+                const arr = get("extras." + wkey) || [];
+                arr[idx].done = !arr[idx].done;
+                arr[idx].date = arr[idx].done ? VL.todayISO() : null;
+                set("extras." + wkey, arr);
+                Sections.plan(container);
+              }
+            }),
+            el("button", {
+              class: "btn btn-sm btn-ghost", style: "padding:6px 9px", text: "✕",
+              onclick: () => {
+                if (!confirm("¿Eliminar este entrenamiento opcional?")) return;
+                const arr = get("extras." + wkey) || [];
+                arr.splice(idx, 1);
+                set("extras." + wkey, arr);
+                Sections.plan(container);
+              }
+            })
+          ])
+        ]));
+      });
+      card.appendChild(list);
+    }
+
+    // Formulario de alta
+    const tipoSel = el("select", {}, TIPOS.map(t => el("option", { value: t.id, text: t.icono + " " + t.nombre })));
+    const nameIn = el("input", { type: "text", placeholder: "Descripción (ej. Partido liga, 5 km suaves…)" });
+    const addBtn = el("button", { class: "btn btn-primary btn-sm", text: "+ Añadir", onclick: () => {
+      const arr = get("extras." + wkey) || [];
+      arr.push({ id: Date.now(), tipo: tipoSel.value, nombre: nameIn.value.trim(), done: false, date: null });
+      set("extras." + wkey, arr);
+      VL.toast("Opcional añadido");
+      Sections.plan(container);
+    }});
+    card.appendChild(el("div", { class: "row mt-2" }, [
+      el("div", { style: "flex:0 0 auto;min-width:170px" }, tipoSel),
+      nameIn,
+      el("div", { style: "flex:0 0 auto" }, addBtn)
+    ]));
+
+    return card;
   }
 
   function renderHevyResult(res) {

@@ -40,7 +40,7 @@ Sections.dashboard = function (container) {
   const grid = el("div", { class: "grid grid-3" });
   grid.appendChild(stat("Semana actual", `${week}`, "/ 8", "accent"));
   grid.appendChild(stat("Bloque", `${block}`, blockNames[block], ""));
-  const nextTest = week < 1 ? "Línea base" : week < 4 ? "Control · S4" : week < 8 ? "Retest · S8" : "¡Retest!";
+  const nextTest = week <= 4 ? "Control · S4" : week < 8 ? "Retest · S8" : "¡Retest!";
   grid.appendChild(stat("Próximo test", nextTest, "", ""));
   container.appendChild(grid);
 

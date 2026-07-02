@@ -39,6 +39,10 @@ Sections.gimnasio = function (container) {
 
   ensureSeed();
 
+  // Levantamiento a mantener abierto tras un re-render (registrar/borrar serie).
+  const openLiftTarget = Sections.gimnasio._openLift;
+  Sections.gimnasio._openLift = null;
+
   const week = currentWeek();
   const block = blockForWeek(week) || 1;
   const blockInfo = {
@@ -235,6 +239,7 @@ Sections.gimnasio = function (container) {
       arr.push({ date: todayISO(), weight: weight || 0, sets: parseInt(sIn.value, 10) || 1, reps, rpe: rpeIn.value ? parseFloat(rpeIn.value) : null });
       set("lifts." + lift.id, arr);
       VL.toast("Serie registrada 💪");
+      Sections.gimnasio._openLift = lift.id;   // mantener abierto tras re-render
       Sections.gimnasio(container);
     }});
 
@@ -274,7 +279,7 @@ Sections.gimnasio = function (container) {
           el("td", { text: h.rpe != null ? h.rpe : "—" }),
           el("td", { text: lift.bw ? h.reps : (epley1RM(h.weight, h.reps) + " kg") }),
         ].concat([el("td", {}, el("button", { class: "btn btn-sm btn-ghost", style: "padding:3px 8px", text: "✕",
-          onclick: () => { if (confirm("¿Eliminar esta serie?")) { const a = get("lifts." + lift.id) || []; a.splice(realIndex, 1); set("lifts." + lift.id, a); Sections.gimnasio(container); } } }))])));
+          onclick: () => { if (confirm("¿Eliminar esta serie?")) { const a = get("lifts." + lift.id) || []; a.splice(realIndex, 1); set("lifts." + lift.id, a); Sections.gimnasio._openLift = lift.id; Sections.gimnasio(container); } } }))])));
       });
       table.appendChild(tb);
       wrap.appendChild(table);
@@ -296,7 +301,8 @@ Sections.gimnasio = function (container) {
         el("div", { style: "font-weight:700", text: lift.nombre }),
         el("small", { class: "muted", text: lift.grupo + (last ? " · última: " + (lift.bw && !last.weight ? "BW" : last.weight + "kg") + "×" + last.reps + (last.rpe ? " @" + last.rpe : "") : "") })
       ]),
-      body
+      body,
+      { open: openLiftTarget === lift.id }
     );
 
     return el("div", { class: "card" }, [head, body]);

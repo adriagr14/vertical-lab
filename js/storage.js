@@ -12,6 +12,7 @@
     meta: { createdAt: null, startDate: null, version: 1 },
     settings: { athleteWeightKg: 82, rimHeightCm: 305 },
     sessions: {},        // { "s1d2": { done:true, rpe:8, note:"", date:"..." } }
+    extras: {},          // { "w3": [ {id, tipo, nombre, nota, done, date} ] } — entrenos opcionales por semana
     tests: {},           // { cmj: [ {date, value, ...} ], ... }
     lifts: {},           // { sentadilla: [ {date, weight, sets, reps, rpe} ], ... }
     liftBaseline: {},    // cargas iniciales declaradas en §4.9

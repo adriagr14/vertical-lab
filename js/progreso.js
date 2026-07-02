@@ -27,10 +27,16 @@ Sections.progreso = function (container) {
   const RIM = get("settings.rimHeightCm", 305);
   const deficit = (reach != null && aroBest != null) ? Math.round((RIM - (reach + aroBest)) * 10) / 10 : null;
 
+  // Extras (entrenamientos opcionales)
+  const extras = get("extras") || {};
+  const extrasAll = Object.keys(extras).reduce((acc, k) => acc.concat((extras[k] || []).map(e => Object.assign({ semana: k.replace("w", "") }, e))), []);
+  const extrasDone = extrasAll.filter(e => e.done);
+
   const grid = el("div", { class: "grid grid-3" });
   grid.appendChild(stat("Sesiones hechas", doneList.length + " / " + totalSesiones, adher + "% adherencia", "accent"));
   grid.appendChild(stat("Mejor CMJ", bestCmj != null ? bestCmj + " cm" : "—", "salto con contramovimiento", ""));
   grid.appendChild(stat("Déficit a aro", deficit != null ? (deficit <= 0 ? "¡Llegas!" : deficit + " cm") : "—", "objetivo: 0", deficit != null && deficit <= 0 ? "ok" : ""));
+  grid.appendChild(stat("Extras completados", extrasDone.length + (extrasAll.length ? " / " + extrasAll.length : ""), "partidos, carrera, gym extra…", ""));
   container.appendChild(grid);
 
   /* ---------- Gráficas ---------- */
@@ -80,6 +86,28 @@ Sections.progreso = function (container) {
     histCard.appendChild(wrap);
   }
   container.appendChild(histCard);
+
+  // Extras completados (entrenamientos opcionales)
+  if (extrasDone.length) {
+    const ICONOS = { partido: "🏀", carrera: "🏃", gym: "🏋️", movilidad: "🧘", otro: "➕" };
+    const exCard = el("div", { class: "card" });
+    exCard.appendChild(el("div", { class: "card-title", html: "➕ Extras completados" }));
+    const wrap = el("div", { class: "table-wrap" });
+    const table = el("table");
+    table.appendChild(el("thead", {}, el("tr", {}, ["Fecha", "Sem", "Entrenamiento"].map(h => el("th", { text: h })))));
+    const tb = el("tbody");
+    extrasDone.slice().sort((a, b) => (b.date || "").localeCompare(a.date || "")).forEach(e => {
+      tb.appendChild(el("tr", {}, [
+        el("td", { text: e.date ? fmtDate(e.date) : "—" }),
+        el("td", {}, el("span", { class: "badge", text: "S" + e.semana })),
+        el("td", { style: "font-weight:600;font-size:.88rem", text: (ICONOS[e.tipo] || "➕") + " " + (e.nombre || e.tipo) })
+      ]));
+    });
+    table.appendChild(tb);
+    wrap.appendChild(table);
+    exCard.appendChild(wrap);
+    container.appendChild(exCard);
+  }
 
   // Export rápido
   container.appendChild(el("div", { class: "card text-c" }, [
