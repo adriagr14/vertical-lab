@@ -182,14 +182,34 @@
     }
   }
 
-  // Cálculo de la semana actual del plan a partir de startDate
+  // Lunes de la semana de una fecha (el plan es L-M-X-J-V: las semanas
+  // van alineadas al calendario, no a bloques de 7 días desde la activación).
+  function mondayOf(d) {
+    const m = new Date(d);
+    m.setHours(0, 0, 0, 0);
+    m.setDate(m.getDate() - ((m.getDay() + 6) % 7));   // Lun=0 … Dom=6
+    return m;
+  }
+
+  // Semana actual del plan (1–8), contando lunes de calendario desde startDate.
+  // Ej.: activado un martes → el lunes siguiente ya es semana 2.
   function currentWeek() {
     const start = get("meta.startDate");
     if (!start) return null;
-    const ms = Date.now() - new Date(start + "T00:00:00").getTime();
-    const week = Math.floor(ms / (7 * 864e5)) + 1;
+    const ms = mondayOf(new Date()) - mondayOf(new Date(start + "T00:00:00"));
+    const week = Math.round(ms / (7 * 864e5)) + 1;
     return Math.min(Math.max(week, 1), 8);
   }
+
+  // Fecha (Date) del lunes de una semana concreta del plan
+  function weekStartDate(weekN) {
+    const start = get("meta.startDate");
+    if (!start || !weekN) return null;
+    const m = mondayOf(new Date(start + "T00:00:00"));
+    m.setDate(m.getDate() + (weekN - 1) * 7);
+    return m;
+  }
+
   function blockForWeek(w) {
     if (!w) return null;
     if (w <= 3) return 1;
@@ -197,12 +217,29 @@
     return 3;
   }
 
+  // Mejor 1RM estimado de un levantamiento: máximo entre el punto de partida
+  // y todo el historial registrado/sincronizado desde Hevy. Base de las
+  // cargas sugeridas del plan (se actualiza sola al sincronizar).
+  function bestE1RM(liftId) {
+    const db = load();
+    const entries = [];
+    const base = (db.liftBaseline || {})[liftId];
+    if (base) entries.push(base);
+    ((db.lifts || {})[liftId] || []).forEach(e => entries.push(e));
+    let best = null;
+    entries.forEach(e => {
+      const v = epley1RM(e.weight, e.reps);
+      if (v && (!best || v > best)) best = v;
+    });
+    return best;
+  }
+
   window.VL = {
     load, save, get, set,
     exportJSON, importJSON, reset,
     suppressTouch, onChange, replaceAll,
     el, accordionHead, toast, todayISO, fmtDate, epley1RM, copyText,
-    currentWeek, blockForWeek,
+    currentWeek, blockForWeek, weekStartDate, bestE1RM,
     DEFAULT_DB
   };
 })();

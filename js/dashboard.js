@@ -13,11 +13,16 @@ Sections.dashboard = function (container) {
 
   container.innerHTML = "";
 
-  // Cabecera
+  // Cabecera (con calendario interno visible)
+  const hoyStr = new Date().toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" });
+  const hoyCap = hoyStr.charAt(0).toUpperCase() + hoyStr.slice(1);
   container.appendChild(el("div", { class: "section-head" }, [
     el("div", { class: "eyebrow", text: "Centro de mando" }),
     el("h1", { text: "Hola 👋 Vamos a por el mate" }),
-    el("p", { text: "Pretemporada de 8 semanas · salto vertical, fuerza y capacidad de trabajo." })
+    el("p", { text: "Pretemporada de 8 semanas · salto vertical, fuerza y capacidad de trabajo." }),
+    el("div", { class: "flex flex-wrap", style: "gap:6px;margin-top:2px" }, [
+      el("span", { class: "badge", text: "📅 Hoy: " + hoyCap })
+    ])
   ]));
 
   if (!start) {
@@ -36,9 +41,16 @@ Sections.dashboard = function (container) {
     return;
   }
 
-  // Resumen semana/bloque
+  // Resumen semana/bloque (con rango de fechas de la semana actual)
+  let rango = "";
+  const lunes = VL.weekStartDate(week);
+  if (lunes) {
+    const domingo = new Date(lunes); domingo.setDate(domingo.getDate() + 6);
+    const f = d => d.toLocaleDateString("es-ES", { day: "numeric", month: "short" });
+    rango = f(lunes) + " – " + f(domingo);
+  }
   const grid = el("div", { class: "grid grid-3" });
-  grid.appendChild(stat("Semana actual", `${week}`, "/ 8", "accent"));
+  grid.appendChild(stat("Semana actual", `${week}`, "/ 8", "accent", rango));
   grid.appendChild(stat("Bloque", `${block}`, blockNames[block], ""));
   const nextTest = week <= 4 ? "Control · S4" : week < 8 ? "Retest · S8" : "¡Retest!";
   grid.appendChild(stat("Próximo test", nextTest, "", ""));
@@ -103,10 +115,11 @@ Sections.dashboard = function (container) {
       [VLCharts.ds("1RM est. (kg)", valid.map(s => s.y), VLCharts.C.info)], { plugins: { legend: { display: false } } });
   }
 
-  function stat(label, value, unit, cls) {
+  function stat(label, value, unit, cls, sub) {
     return el("div", { class: "stat " + cls }, [
       el("div", { class: "label", text: label }),
-      el("div", { class: "value", html: value + (unit ? ` <span class="unit">${unit}</span>` : "") })
+      el("div", { class: "value", html: value + (unit ? ` <span class="unit">${unit}</span>` : "") }),
+      sub ? el("div", { class: "sub", text: sub }) : null
     ]);
   }
 };

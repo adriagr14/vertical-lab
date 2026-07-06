@@ -29,7 +29,13 @@
   ];
 
   // helpers de ejercicio
-  function ex(n, s, r, i, d, cue) { return { nombre: n, series: s, reps: r, intensidad: i, descanso: d, cue: cue || "" }; }
+  // carga (opcional): { lift: "<id levantamiento>", pct: 0.75 } → la web muestra la
+  // carga sugerida = pct × tu 1RM estimado (se recalcula sola al sincronizar Hevy).
+  function ex(n, s, r, i, d, cue, carga) {
+    const o = { nombre: n, series: s, reps: r, intensidad: i, descanso: d, cue: cue || "" };
+    if (carga) { o.lift = carga.lift; o.pct = carga.pct; }
+    return o;
+  }
 
   /* ===========================================================
      PLANTILLAS POR BLOQUE  (un microciclo representativo por bloque)
@@ -49,9 +55,9 @@
             ex("Drop land desde cajón bajo (20–30 cm)", 4, "3", "Recepción", "60\"", "CAE y AGUANTA: aterriza silencioso, rodilla sobre el pie, congela 1\".")
           ]},
           { nombre: "Fuerza principal", ejercicios: [
-            ex("Sentadilla trasera (o frontal)", "4–5", "4–6", "RPE 7→8", "2,5–3'", "Pecho alto, empuja el suelo, controla la bajada (2\")."),
-            ex("Búlgara (split squat) con mancuernas", 3, "8 / pierna", "RPE 7–8", "90\"", "Tronco vertical, rodilla trasera baja, empuje del talón delantero."),
-            ex("Gemelo de pie pesado + isométrico sóleo", 4, "8 + 20\"", "RPE 8", "75\"", "Rango completo, pausa abajo; el sóleo es clave para el salto.")
+            ex("Sentadilla trasera (o frontal)", "4–5", "4–6", "RPE 7→8", "2,5–3'", "Pecho alto, empuja el suelo, controla la bajada (2\").", { lift: "sentadilla", pct: .75 }),
+            ex("Búlgara (split squat) con mancuernas", 3, "8 / pierna", "RPE 7–8", "90\"", "Tronco vertical, rodilla trasera baja, empuje del talón delantero.", { lift: "bulgaras", pct: .70 }),
+            ex("Gemelo de pie pesado + isométrico sóleo", 4, "8 + 20\"", "RPE 8", "75\"", "Rango completo, pausa abajo; el sóleo es clave para el salto.", { lift: "gemelo", pct: .75 })
           ]},
           { nombre: "Core pesado", ejercicios: [
             ex("Pallof press / plancha con lastre", 3, "10 / 30\"", "Exigente", "60\"", "Anti-rotación: no dejes que el tronco gire.")
@@ -82,12 +88,12 @@
         calentamiento: RAMP,
         bloques: [
           { nombre: "Fuerza principal", ejercicios: [
-            ex("Peso muerto con barra hexagonal", 4, "5", "RPE 7→8", "2,5–3'", "Pecho alto, empuja con las piernas, espalda neutra."),
-            ex("Hip thrust", 3, "8", "RPE 7–8", "2'", "Pausa 1\" arriba, mentón metido, aprieta glúteo."),
-            ex("RDL o Nordic curl (isquios)", 3, "6–8", "RPE 8", "90\"", "Excéntrica lenta (3\"), bisagra de cadera, isquios bajo tensión.")
+            ex("Peso muerto con barra hexagonal", 4, "5", "RPE 7→8", "2,5–3'", "Pecho alto, empuja con las piernas, espalda neutra.", { lift: "pm-hex", pct: .775 }),
+            ex("Hip thrust", 3, "8", "RPE 7–8", "2'", "Pausa 1\" arriba, mentón metido, aprieta glúteo.", { lift: "hip-thrust", pct: .75 }),
+            ex("RDL o Nordic curl (isquios)", 3, "6–8", "RPE 8", "90\"", "Excéntrica lenta (3\"), bisagra de cadera, isquios bajo tensión.", { lift: "rdl", pct: .70 })
           ]},
           { nombre: "Tren superior", ejercicios: [
-            ex("Press banca o militar", 3, "6–8", "RPE 7–8", "2'", "Escápulas retraídas, recorrido completo."),
+            ex("Press banca o militar", 3, "6–8", "RPE 7–8", "2'", "Escápulas retraídas, recorrido completo.", { lift: "press-banca", pct: .75 }),
             ex("Dominadas", 3, "AMRAP−2", "RPE 8", "2'", "Rango completo, sin balanceo; lastra si pasas de 10.")
           ]},
           { nombre: "Core", ejercicios: [
@@ -122,7 +128,7 @@
             ex("Bounding (zancadas saltadas) suave", 3, "20 m", "Media", "75\"", "Busca distancia y amplitud, no velocidad máxima aún.")
           ]},
           { nombre: "Fuerza-velocidad ligera", ejercicios: [
-            ex("Jump squat carga ligera (técnica)", 5, "3", "20–30%", "2'", "Máxima velocidad de subida, sin estrellarte al bajar."),
+            ex("Jump squat carga ligera (técnica)", 5, "3", "20–30%", "2'", "Máxima velocidad de subida, sin estrellarte al bajar.", { lift: "sentadilla", pct: .25 }),
             ex("CMJ con foco técnico (brazos)", 4, "3", "Corporal", "75\"", "Coordina el brazeo, bloqueo de tronco, extensión completa.")
           ]},
           { nombre: "Sprint", ejercicios: [
@@ -145,12 +151,12 @@
             ex("Saltos repetidos de valla", 4, "5", "Alta", "75\"", "Reactivo, contacto corto, rodillas arriba."),
           ]},
           { nombre: "Conversión a potencia", ejercicios: [
-            ex("Jump squat con carga óptima", 5, "3", "~30% 1RM", "2,5'", "Carga que maximiza potencia; intención balística."),
-            ex("Sentadilla — series top (mantener fuerza)", 2, "3", "RPE 8", "3'", "Solo 1–2 series pesadas para no perder fuerza máx.")
+            ex("Jump squat con carga óptima", 5, "3", "~30% 1RM", "2,5'", "Carga que maximiza potencia; intención balística.", { lift: "sentadilla", pct: .30 }),
+            ex("Sentadilla — series top (mantener fuerza)", 2, "3", "RPE 8", "3'", "Solo 1–2 series pesadas para no perder fuerza máx.", { lift: "sentadilla", pct: .85 })
           ]},
           { nombre: "Unilateral + tobillo", ejercicios: [
             ex("Búlgara con salto / step-up explosivo", 3, "6 / pierna", "Explosivo", "90\"", "Empuje rápido, control en la bajada."),
-            ex("Gemelo pesado + pogos reactivos", 3, "8 + 15", "RPE 8", "75\"", "Combina pesado y reactivo.")
+            ex("Gemelo pesado + pogos reactivos", 3, "8 + 15", "RPE 8", "75\"", "Combina pesado y reactivo.", { lift: "gemelo", pct: .75 })
           ]}
         ],
         finisher: ""
@@ -181,11 +187,11 @@
             ex("Cargada de fuerza desde colgado / High pull", 4, "3", "RPE 7–8", "2,5'", "Explosión de cadera, codos altos; si no dominas la técnica, usa el high pull.")
           ]},
           { nombre: "Cadena posterior", ejercicios: [
-            ex("Peso muerto hexagonal — velocidad", 4, "3", "60–70% rápido", "2,5'", "Mueve la carga RÁPIDO; calidad sobre cantidad."),
-            ex("Hip thrust", 3, "6", "RPE 8", "2'", "Pausa arriba, empuje potente.")
+            ex("Peso muerto hexagonal — velocidad", 4, "3", "60–70% rápido", "2,5'", "Mueve la carga RÁPIDO; calidad sobre cantidad.", { lift: "pm-hex", pct: .65 }),
+            ex("Hip thrust", 3, "6", "RPE 8", "2'", "Pausa arriba, empuje potente.", { lift: "hip-thrust", pct: .80 })
           ]},
           { nombre: "Tren superior", ejercicios: [
-            ex("Press (banca/militar)", 3, "5", "RPE 8", "2'", "Controla y empuja con intención."),
+            ex("Press (banca/militar)", 3, "5", "RPE 8", "2'", "Controla y empuja con intención.", { lift: "press-banca", pct: .80 }),
             ex("Dominadas lastradas", 3, "5", "RPE 8", "2'", "Añade lastre, rango completo.")
           ]}
         ],
@@ -217,8 +223,8 @@
             ex("Bounding por distancia", 3, "25 m", "Alta", "90\"", "Amplitud + velocidad, proyecta hacia delante.")
           ]},
           { nombre: "Potencia con carga", ejercicios: [
-            ex("Salto con barra hexagonal (jump)", 5, "3", "20–30%", "2,5'", "Despega del suelo, aterriza suave; intención máxima."),
-            ex("Sentadilla con bandas / acelerada", 4, "3", "40% + bandas", "2,5'", "Acelera toda la subida, no frenes arriba.")
+            ex("Salto con barra hexagonal (jump)", 5, "3", "20–30%", "2,5'", "Despega del suelo, aterriza suave; intención máxima.", { lift: "pm-hex", pct: .25 }),
+            ex("Sentadilla con bandas / acelerada", 4, "3", "40% + bandas", "2,5'", "Acelera toda la subida, no frenes arriba.", { lift: "sentadilla", pct: .40 })
           ]},
           { nombre: "Sprint", ejercicios: [
             ex("Sprint", 5, "20–30 m", "Máxima", "2–3'", "Velocidad máxima con recuperación completa.")
@@ -243,7 +249,7 @@
             ex("Intentos de mate / tocar aro con carrera", 6, "2", "Máxima", "2'", "Frescos y al 100%; para cuando baje la altura.")
           ]},
           { nombre: "Fuerza de potenciación (mantenimiento)", ejercicios: [
-            ex("Sentadilla — dobles/singles pesados", 3, "1–2", "RPE 8–9", "3'", "Mantiene fuerza y potencia el SNC; sin fallo.")
+            ex("Sentadilla — dobles/singles pesados", 3, "1–2", "RPE 8–9", "3'", "Mantiene fuerza y potencia el SNC; sin fallo.", { lift: "sentadilla", pct: .875 })
           ]}
         ],
         finisher: ""
@@ -273,8 +279,8 @@
             ex("Bound a una pierna (penúltimo paso simulado)", 3, "4 / pierna", "Alta", "90\"", "Freno potente y reproyección hacia arriba.")
           ]},
           { nombre: "Fuerza mantenimiento (mínima)", ejercicios: [
-            ex("Hip thrust pesado", 2, "3", "RPE 8", "2'", "Pocas series, mantener tensión."),
-            ex("Peso muerto hexagonal — single pesado", 2, "2", "RPE 8", "2,5'", "Mantener fuerza con volumen mínimo.")
+            ex("Hip thrust pesado", 2, "3", "RPE 8", "2'", "Pocas series, mantener tensión.", { lift: "hip-thrust", pct: .85 }),
+            ex("Peso muerto hexagonal — single pesado", 2, "2", "RPE 8", "2,5'", "Mantener fuerza con volumen mínimo.", { lift: "pm-hex", pct: .875 })
           ]}
         ],
         finisher: "Tobillo/tendón: isométricos 3×30\" (mantenimiento)."
@@ -300,7 +306,7 @@
         bloques: [
           { nombre: "Activación neural (poco volumen)", ejercicios: [
             ex("Pogos reactivos + 2–3 saltos máximos", 3, "5 + 2", "Alta", "90\"", "Despierta el sistema, sin acumular fatiga."),
-            ex("Sentadilla — single de activación", 2, "1", "RPE 7", "3'", "Una carga moderada-alta para potenciar, sin vaciarte.")
+            ex("Sentadilla — single de activación", 2, "1", "RPE 7", "3'", "Una carga moderada-alta para potenciar, sin vaciarte.", { lift: "sentadilla", pct: .80 })
           ]},
           { nombre: "Salto al aro", ejercicios: [
             ex("Intentos de mate / tocar aro", 5, "2", "Máxima", "2'", "Disfruta: estás en pico. Mide tu mejor salto.")

@@ -9,6 +9,9 @@ Sections.datos = function (container) {
     el("p", { text: "Sincroniza entre dispositivos con la nube, o guarda un respaldo manual en JSON." })
   ]));
 
+  // Plan y calendario (fecha de inicio editable)
+  container.appendChild(renderPlanCard());
+
   // Sincronización en la nube (Supabase)
   container.appendChild(renderCloudCard());
 
@@ -37,6 +40,29 @@ Sections.datos = function (container) {
       onclick: () => { if (confirm("¿Seguro? Se borrarán todos tus registros.")) { VL.reset(); VL.toast("Datos borrados"); window.App.render("dashboard"); window.App.go("dashboard"); } }
     })
   ]));
+
+  function renderPlanCard() {
+    const cur = VL.get("meta.startDate");
+    const week = VL.currentWeek();
+    const hoy = new Date().toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+
+    const input = el("input", { type: "date", value: cur || "" });
+    const saveBtn = el("button", { class: "btn btn-primary btn-sm", text: "Guardar fecha", onclick: () => {
+      if (!input.value) { VL.toast("Elige una fecha"); return; }
+      VL.set("meta.startDate", input.value);
+      VL.toast("📅 Fecha de inicio actualizada");
+      window.App.updateContext();
+      Sections.datos(container);
+    }});
+
+    return el("div", { class: "card" }, [
+      el("div", { class: "card-title mb-0", html: "📅 Plan y calendario" }),
+      el("p", { class: "mt-1 dim", style: "font-size:.86rem", text: "Hoy es " + hoy + (week ? ". Vas por la semana " + week + " de 8." : ". El plan aún no está activado.") }),
+      el("p", { class: "dim", style: "font-size:.82rem", text: "Las semanas del plan van de lunes a domingo: la semana 1 es la del día de inicio, y cada lunes se pasa a la siguiente automáticamente." }),
+      el("label", { class: "field" }, [el("span", { text: "Fecha de inicio del plan (semana 1)" }), input]),
+      saveBtn
+    ]);
+  }
 
   function renderCloudCard() {
     const urlIn = el("input", { type: "text", placeholder: "https://xxxx.supabase.co", value: VL.get("settings.supabaseUrl") || "" });

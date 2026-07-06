@@ -60,6 +60,18 @@ Sections.plan = function (container) {
   const wk = PLAN.semanas.find(w => w.n === selWeek);
   const blk = PLAN.meta.bloques.find(b => b.id === wk.bloque);
 
+  // Rango de fechas de la semana (si el plan está activado)
+  const lunes = VL.weekStartDate(wk.n);
+  let rango = null;
+  if (lunes) {
+    const viernes = new Date(lunes); viernes.setDate(viernes.getDate() + 4);
+    const f = d => d.toLocaleDateString("es-ES", { day: "numeric", month: "short" });
+    rango = f(lunes) + " – " + f(viernes);
+  }
+
+  // ¿Hay cargas personalizadas calculables esta semana?
+  const hayCargas = wk.dias.some(d => (d.bloques || []).some(g => (g.ejercicios || []).some(e => cargaSugerida(e, wk))));
+
   // Banner de la semana (progresión)
   container.appendChild(el("div", { class: "card", style: "border-left:3px solid var(--accent)" }, [
     el("div", { class: "flex-between flex-wrap" }, [
@@ -67,12 +79,14 @@ Sections.plan = function (container) {
         el("div", { class: "flex flex-wrap", style: "gap:6px;margin-bottom:4px" }, [
           el("span", { class: "badge " + blk.color, text: "Bloque " + wk.bloque }),
           el("span", { class: "badge", text: "Semana " + wk.n + " / 8" }),
+          rango ? el("span", { class: "badge", text: "📅 " + rango }) : null,
           el("span", { class: "badge " + (wk.taper ? "warn" : wk.descarga ? "warn" : "ok"), text: wk.carga })
         ]),
         el("h3", { class: "mb-0", text: wk.titulo })
       ])
     ]),
-    el("p", { class: "mt-1 mb-0", text: wk.nota })
+    el("p", { class: "mt-1 mb-0", text: wk.nota }),
+    hayCargas ? el("p", { class: "mb-0", style: "margin-top:8px;font-size:.8rem;color:var(--text-mute)", text: "⚖️ Las cargas «≈ kg» se calculan de TU 1RM estimado y se actualizan solas al registrar/sincronizar entrenos. Son orientativas: ajusta ±2,5 kg según el RPE del día." }) : null
   ]));
 
   // Sesiones (acordeón)
@@ -125,6 +139,7 @@ Sections.plan = function (container) {
       ])));
       const tb = el("tbody");
       grupo.ejercicios.forEach(ex => {
+        const carga = cargaSugerida(ex, week);
         const tr = el("tr", {}, [
           el("td", {}, [
             el("div", { style: "font-weight:600", text: ex.nombre }),
@@ -132,7 +147,11 @@ Sections.plan = function (container) {
           ]),
           el("td", { text: String(ex.series) }),
           el("td", { text: String(ex.reps) }),
-          el("td", {}, el("span", { class: "badge", text: ex.intensidad })),
+          el("td", {}, [
+            el("span", { class: "badge", text: ex.intensidad }),
+            carga ? el("div", { style: "margin-top:4px" },
+              el("span", { class: "badge ok", title: carga.title, text: "≈ " + String(carga.peso).replace(".", ",") + " kg · " + carga.pct + "%" })) : null
+          ]),
           el("td", { class: "muted", text: ex.descanso || "—" })
         ]);
         tb.appendChild(tr);
@@ -203,6 +222,27 @@ Sections.plan = function (container) {
       Sections.plan._openDay = dia.dayIndex;   // mantener el día abierto tras re-render
       Sections.plan(container);
     }
+  }
+
+  /* ---------- carga sugerida personalizada ----------
+     pct base del ejercicio (data/plan-8-semanas.js) sobre TU mejor 1RM estimado
+     (punto de partida + historial/Hevy), con ajuste semanal:
+     +2,5% a partir de la 2ª semana del bloque · −7,5% en descarga/taper. */
+  function cargaSugerida(ex, week) {
+    if (!ex.lift || !ex.pct) return null;
+    const e1 = VL.bestE1RM(ex.lift);
+    if (!e1) return null;
+    const blk = PLAN.meta.bloques.find(b => b.id === week.bloque);
+    const idx = blk ? blk.semanas.indexOf(week.n) : 0;
+    const relajado = week.descarga || week.taper;
+    const pct = ex.pct + (relajado ? 0 : Math.min(Math.max(idx, 0), 1) * 0.025);
+    const factor = relajado ? 0.925 : 1;
+    const peso = Math.max(2.5, Math.round((e1 * pct * factor) / 2.5) * 2.5);
+    const pctShow = Math.round(pct * factor * 100);
+    return {
+      peso, pct: pctShow,
+      title: `${pctShow}% de tu 1RM estimado (${e1} kg)` + (relajado ? " · semana de descarga (−7,5%)" : "")
+    };
   }
 
   function collapseList(title, items) {
