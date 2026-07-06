@@ -80,7 +80,12 @@
             ex("Close-outs", 3, "6", "Media", "45\"", "Sprint y frena corto, manos arriba, base ancha.")
           ]}
         ],
-        finisher: "Tiro libre x10 entre series + shooting suave (recuperación activa)."
+        finisher: "Tiro libre x10 entre series + shooting suave (recuperación activa).",
+        gymExtra: { nombre: "🔥 Gimnasio mismo día · Tren superior (modo exigente)", ejercicios: [
+          ex("Press banca", 4, "8", "RPE 7–8", "2'", "Escápulas fijas; deja 1–2 reps en recámara.", { lift: "press-banca", pct: .725 }),
+          ex("Remo con barra / mancuerna", 4, "10", "RPE 8", "90\"", "Tira al abdomen, sin impulso lumbar. Espalda = rebote y contacto."),
+          ex("Face pull + elevaciones laterales", 3, "15 + 12", "RPE 8", "60\"", "Hombro sano y fuerte para el contacto.")
+        ]}
       },
       { // Miércoles
         nombre: "Cadena posterior + Tren superior + Core", tipo: "fuerza", icono: "💪",
@@ -116,7 +121,12 @@
             ex("Esfuerzos intermitentes (defensa-transición)", 4, "30\"", "Media-alta", "60\"", "Trabajo:descanso ~1:2.")
           ]}
         ],
-        finisher: "Movilidad de cadera/tobillo 5'."
+        finisher: "Movilidad de cadera/tobillo 5'.",
+        gymExtra: { nombre: "🔥 Gimnasio mismo día · Tren superior (modo exigente)", ejercicios: [
+          ex("Press militar", 4, "8", "RPE 7–8", "2'", "Core firme, bloqueo arriba sin arquear la lumbar.", { lift: "press-militar", pct: .70 }),
+          ex("Dominadas (lastradas si >10)", 4, "6–10", "RPE 8", "2'", "Rango completo; añade lastre cuando llegues fácil."),
+          ex("Curl bíceps + tríceps en polea", 3, "12 + 12", "RPE 8", "60\"", "Brazos: agarre fuerte para rebote y balón dividido.")
+        ]}
       },
       { // Viernes
         nombre: "Introducción a la potencia + Sprint técnico", tipo: "potencia", icono: "⚡",
@@ -176,7 +186,12 @@
             ex("Close-out → slide → recovery", 3, "6", "Alta", "60\"", "Controla el cierre, no saltes al primer finteo.")
           ]}
         ],
-        finisher: "Tiro en movimiento tras finta 5'."
+        finisher: "Tiro en movimiento tras finta 5'.",
+        gymExtra: { nombre: "🔥 Gimnasio mismo día · Tren superior (modo exigente)", ejercicios: [
+          ex("Press banca", 4, "6", "RPE 8", "2,5'", "Fuerza: mueve la barra con intención.", { lift: "press-banca", pct: .775 }),
+          ex("Remo pesado (barra / T)", 4, "8", "RPE 8", "2'", "Tirón horizontal pesado: espalda de rebote."),
+          ex("Press mancuerna unilateral", 3, "8 / lado", "RPE 8", "90\"", "Empuje a un brazo: transferencia al contacto en el aire.")
+        ]}
       },
       { // Miércoles
         nombre: "Cadena posterior + Halterofilia + Tren superior", tipo: "fuerza", icono: "💪",
@@ -211,7 +226,12 @@
             ex("Repeat-sprint anaeróbico (líneas)", 6, "1", "90–95%", "45\"", "Imita las demandas del partido; aguanta la técnica de freno.")
           ]}
         ],
-        finisher: "Respiración + movilidad 5'."
+        finisher: "Respiración + movilidad 5'.",
+        gymExtra: { nombre: "🔥 Gimnasio mismo día · Tren superior (modo exigente)", ejercicios: [
+          ex("Press militar", 4, "6", "RPE 8", "2,5'", "Empuje vertical potente, core sólido.", { lift: "press-militar", pct: .75 }),
+          ex("Dominadas lastradas", 4, "5–6", "RPE 8", "2'", "Lastre progresivo, rango completo."),
+          ex("Pallof press / core anti-rotación", 3, "10 / lado", "Exigente", "60\"", "Tronco sólido en el aire y en el contacto.")
+        ]}
       },
       { // Viernes
         nombre: "Potencia balística + Sprint", tipo: "potencia", icono: "⚡",
@@ -267,7 +287,11 @@
             ex("Entradas a 1 y 2 pies a ritmo de partido", 4, "4 / lado", "Alta", "60\"", "Calidad técnica, decisión rápida, sin fatiga acumulada.")
           ]}
         ],
-        finisher: "Tiro libre + tiro en suspensión 8'."
+        finisher: "Tiro libre + tiro en suspensión 8'.",
+        gymExtra: { nombre: "🔥 Gimnasio mismo día · Superior mantenimiento (modo exigente)", ejercicios: [
+          ex("Press banca — mantenimiento", 3, "5", "RPE 7", "2'", "Estás en pico: mantener sin fatigar. Si el salto va justo, sáltatelo.", { lift: "press-banca", pct: .75 }),
+          ex("Remo ligero + face pull", 3, "10 + 15", "RPE 7", "90\"", "Volumen bajo, calidad alta.")
+        ]}
       },
       { // Miércoles
         nombre: "Mantenimiento + Reactivo unilateral", tipo: "potencia", icono: "🔥",
@@ -297,7 +321,11 @@
             ex("Salto con carrera a tocar aro", 6, "2", "Máxima", "90\"", "Pocos, frescos, todos al 100%.")
           ]}
         ],
-        finisher: "Movilidad + descarga 6'."
+        finisher: "Movilidad + descarga 6'.",
+        gymExtra: { nombre: "🔥 Gimnasio mismo día · Superior mantenimiento (modo exigente)", ejercicios: [
+          ex("Dominadas", 3, "6", "RPE 7", "2'", "Frescura primero: si el salto es la prioridad del día, esto es opcional."),
+          ex("Press militar ligero", 3, "6", "RPE 7", "2'", "Chispa sin fatiga.", { lift: "press-militar", pct: .70 })
+        ]}
       },
       { // Viernes
         nombre: "Taper / Activación + Intentos al aro", tipo: "potencia", icono: "🔥",
@@ -364,6 +392,18 @@
         { id: 2, nombre: "Conversión · Fuerza-velocidad + Potencia", semanas: [4, 5, 6], color: "b2" },
         { id: 3, nombre: "Realización · Reactividad + Pico", semanas: [7, 8], color: "b3" }
       ]
+    },
+    // Alternativas si el material está ocupado (misma dosis de series × reps)
+    alternativas: {
+      "sentadilla": ["Sentadilla frontal", "Prensa de piernas", "Goblet squat pesado"],
+      "pm-hex": ["Peso muerto rumano pesado", "Rack pull", "Prensa + curl femoral"],
+      "hip-thrust": ["Glute bridge con barra", "Hip thrust a una pierna", "Extensión de cadera en polea pesada"],
+      "bulgaras": ["Zancadas con mancuernas", "Step-up alto con peso", "Split squat en multipower"],
+      "rdl": ["Curl femoral + hiperextensión", "Buenos días ligero", "RDL a una pierna"],
+      "press-banca": ["Press con mancuernas", "Press en máquina", "Fondos lastrados"],
+      "press-militar": ["Press mancuernas sentado", "Push press ligero", "Press de hombro en máquina"],
+      "dominadas": ["Jalón al pecho", "Dominadas asistidas", "Remo invertido"],
+      "gemelo": ["Gemelo en prensa", "Gemelo sentado (sóleo)", "Gemelo a una pierna con mancuerna"]
     },
     plantillas,
     progresion,

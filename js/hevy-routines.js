@@ -48,8 +48,12 @@
     { re: /bounding|bound/, groups: [["bound"]] },
     { re: /broad jump|salto horizontal|long jump/, groups: [["broad jump"], ["long jump"], ["salto horizontal"]] },
     { re: /cargada|clean|high pull/, groups: [["clean"], ["cargada"]] },
+    { re: /face pull/, groups: [["face pull"]] },
+    { re: /\bremo\b|bent over row/, groups: [["bent over row"], ["remo con barra"], ["remo"]] },
+    { re: /curl.*biceps|biceps.*curl/, groups: [["bicep curl"], ["curl de biceps"], ["curl"]] },
+    { re: /press mancuerna/, groups: [["shoulder press", "dumbbell"], ["press de hombro"], ["shoulder press"]] },
     { re: /press.*banca|bench press/, groups: [["bench press"], ["press de banca"]] },
-    { re: /press.*militar|overhead|shoulder press|press.*hombro/, groups: [["overhead press"], ["shoulder press"], ["press militar"], ["press de hombro"]] },
+    { re: /press.*militar|overhead|shoulder press|press.*hombro/, groups: [["press militar"], ["overhead press"], ["press de hombro", "barra"], ["shoulder press"], ["press de hombro"]] },
     { re: /dominada|pull ?up|chin ?up/, groups: [["pull up"], ["dominada"], ["chin up"]] },
     { re: /core|plancha/, groups: [["plank"], ["plancha"]] },
     { re: /sentadilla|squat/, groups: [["squat", "barbell"], ["sentadilla", "barra"], ["squat"], ["sentadilla"]] }

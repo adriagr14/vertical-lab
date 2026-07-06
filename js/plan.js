@@ -25,6 +25,26 @@ Sections.plan = function (container) {
     el("p", { text: "5 sesiones/semana (L-M-X-J-V). Pliometría antes de la fuerza. Cargas y RPE editables." })
   ]));
 
+  // Modo exigente: dobles sesiones (pista + gym superior) y +2,5% de carga
+  const exigente = !!get("settings.modoExigente");
+  const exigChk = el("input", { type: "checkbox" });
+  if (exigente) exigChk.checked = true;
+  exigChk.addEventListener("change", () => {
+    set("settings.modoExigente", exigChk.checked);
+    VL.toast(exigChk.checked ? "🔥 Modo exigente activado" : "Modo exigente desactivado");
+    Sections.plan(container);
+  });
+  container.appendChild(el("div", { class: "card", style: exigente ? "border-color:var(--accent)" : "" }, [
+    el("div", { class: "flex-between flex-wrap" }, [
+      el("div", { class: "card-title mb-0", html: "🔥 Modo exigente" }),
+      el("label", { class: "flex", style: "gap:8px;cursor:pointer;flex:0 0 auto" }, [
+        exigChk,
+        el("span", { style: "font-weight:700;font-size:.88rem;color:" + (exigente ? "var(--accent-2)" : "var(--text-mute)"), text: exigente ? "Activado" : "Desactivado" })
+      ])
+    ]),
+    el("p", { class: "mt-1 mb-0 dim", style: "font-size:.85rem", text: "Dobles sesiones: los días de pista añaden un bloque de gimnasio de tren superior (~35'), y las cargas sugeridas suben +2,5% desde la semana 1. Ideal: pista y gimnasio separados ≥6 h (mañana/tarde); si no, pista primero y pesas después. La pliometría NO aumenta: el tendón se adapta más lento que el músculo y necesita progresión gradual." })
+  ]));
+
   // Resumen de bloques
   const blocks = el("div", { class: "grid grid-3" });
   PLAN.meta.bloques.forEach(b => {
@@ -70,7 +90,7 @@ Sections.plan = function (container) {
   }
 
   // ¿Hay cargas personalizadas calculables esta semana?
-  const hayCargas = wk.dias.some(d => (d.bloques || []).some(g => (g.ejercicios || []).some(e => cargaSugerida(e, wk))));
+  const hayCargas = wk.dias.some(d => (d.bloques || []).some(g => (g.ejercicios || []).some(e => cargaSugerida(e, wk, d))));
 
   // Banner de la semana (progresión)
   container.appendChild(el("div", { class: "card", style: "border-left:3px solid var(--accent)" }, [
@@ -80,7 +100,8 @@ Sections.plan = function (container) {
           el("span", { class: "badge " + blk.color, text: "Bloque " + wk.bloque }),
           el("span", { class: "badge", text: "Semana " + wk.n + " / 8" }),
           rango ? el("span", { class: "badge", text: "📅 " + rango }) : null,
-          el("span", { class: "badge " + (wk.taper ? "warn" : wk.descarga ? "warn" : "ok"), text: wk.carga })
+          el("span", { class: "badge " + (wk.taper ? "warn" : wk.descarga ? "warn" : "ok"), text: wk.carga }),
+          exigente ? el("span", { class: "badge b3", text: "🔥 Exigente" }) : null
         ]),
         el("h3", { class: "mb-0", text: wk.titulo })
       ])
@@ -129,8 +150,10 @@ Sections.plan = function (container) {
     // Calentamiento
     body.appendChild(collapseList("🔥 Calentamiento (RAMP)", dia.calentamiento));
 
-    // Bloques de ejercicios
-    dia.bloques.forEach(grupo => {
+    // Bloques de ejercicios (+ gym extra del modo exigente en días de pista)
+    const bloquesFx = (exigente && dia.gymExtra) ? dia.bloques.concat([dia.gymExtra]) : dia.bloques;
+    const diaFx = (exigente && dia.gymExtra) ? Object.assign({}, dia, { bloques: bloquesFx }) : dia;
+    bloquesFx.forEach(grupo => {
       body.appendChild(el("div", { class: "mt-2", style: "font-weight:700;color:var(--accent-2);font-size:.85rem;text-transform:uppercase;letter-spacing:.04em", text: grupo.nombre }));
       const wrap = el("div", { class: "table-wrap" });
       const table = el("table");
@@ -139,18 +162,41 @@ Sections.plan = function (container) {
       ])));
       const tb = el("tbody");
       grupo.ejercicios.forEach(ex => {
-        const carga = cargaSugerida(ex, week);
+        const carga = cargaSugerida(ex, week, dia);
+        const alts = (ex.lift && PLAN.alternativas) ? PLAN.alternativas[ex.lift] : null;
+
+        // Info expandible bajo el nombre: aproximación (toca el chip) y alternativas
+        const aproxDiv = el("div", { class: "hidden-body", style: "margin-top:4px;font-size:.8rem;color:var(--info)" });
+        const altDiv = el("div", { class: "hidden-body", style: "margin-top:4px;font-size:.8rem;color:var(--warn)" });
+        if (alts) altDiv.textContent = "⇄ Si está ocupado (misma dosis): " + alts.join(" · ");
+
+        let chip = null;
+        if (carga) {
+          chip = el("span", {
+            class: "badge ok", style: "cursor:pointer",
+            title: carga.title + " · toca para ver la aproximación",
+            text: "≈ " + String(carga.peso).replace(".", ",") + " kg · " + carga.pct + "%"
+          });
+          chip.addEventListener("click", () => {
+            aproxDiv.textContent = "🔥 Aproximación: " + aproximacion(carga.peso);
+            aproxDiv.classList.toggle("hidden-body");
+          });
+        }
+
         const tr = el("tr", {}, [
           el("td", {}, [
-            el("div", { style: "font-weight:600", text: ex.nombre }),
-            ex.cue ? el("small", { style: "color:var(--text-mute)", text: "💡 " + ex.cue }) : null
+            el("div", { class: "flex flex-wrap", style: "gap:6px;align-items:center" }, [
+              el("span", { style: "font-weight:600", text: ex.nombre }),
+              alts ? el("button", { class: "btn btn-sm btn-ghost", style: "padding:1px 7px;font-size:.7rem;min-width:auto", text: "⇄ ¿ocupado?", onclick: () => altDiv.classList.toggle("hidden-body") }) : null
+            ]),
+            ex.cue ? el("small", { style: "color:var(--text-mute)", text: "💡 " + ex.cue }) : null,
+            aproxDiv, altDiv
           ]),
           el("td", { text: String(ex.series) }),
           el("td", { text: String(ex.reps) }),
           el("td", {}, [
             el("span", { class: "badge", text: ex.intensidad }),
-            carga ? el("div", { style: "margin-top:4px" },
-              el("span", { class: "badge ok", title: carga.title, text: "≈ " + String(carga.peso).replace(".", ",") + " kg · " + carga.pct + "%" })) : null
+            chip ? el("div", { style: "margin-top:4px" }, chip) : null
           ]),
           el("td", { class: "muted", text: ex.descanso || "—" })
         ]);
@@ -163,13 +209,13 @@ Sections.plan = function (container) {
 
     if (dia.finisher) body.appendChild(el("p", { class: "mt-2 dim", style: "font-size:.86rem", text: "🏁 " + dia.finisher }));
 
-    // Acciones: copiar / crear rutina en Hevy (días de gimnasio) + completar
+    // Acciones: copiar / crear rutina en Hevy (días con gimnasio) + completar
     const hevyResult = el("div", { class: "mt-2" });
     const actions = el("div", { class: "flex flex-wrap mt-2", style: "gap:8px" });
-    if (dia.tipo !== "pista") {
+    if (dia.tipo !== "pista" || (exigente && dia.gymExtra)) {
       actions.appendChild(el("button", {
         class: "btn btn-sm", text: "📋 Copiar a Heavy",
-        onclick: () => VLHeavy.copySession(toHeavySession(week, dia))
+        onclick: () => VLHeavy.copySession(toHeavySession(week, diaFx))
       }));
       const createBtn = el("button", { class: "btn btn-sm", text: "➕ Crear rutina en Hevy" });
       createBtn.addEventListener("click", async () => {
@@ -178,7 +224,7 @@ Sections.plan = function (container) {
         const prev = createBtn.textContent; createBtn.disabled = true; createBtn.textContent = "Creando…";
         hevyResult.innerHTML = "";
         try {
-          const res = await VLHevyRoutines.createRoutine(apiKey, week, dia);
+          const res = await VLHevyRoutines.createRoutine(apiKey, week, diaFx);
           createBtn.disabled = false; createBtn.textContent = prev;
           VL.toast(res.created ? "✅ Rutina creada en Hevy" : "⚠️ " + res.msg);
           hevyResult.appendChild(renderHevyResult(res));
@@ -228,21 +274,41 @@ Sections.plan = function (container) {
      pct base del ejercicio (data/plan-8-semanas.js) sobre TU mejor 1RM estimado
      (punto de partida + historial/Hevy), con ajuste semanal:
      +2,5% a partir de la 2ª semana del bloque · −7,5% en descarga/taper. */
-  function cargaSugerida(ex, week) {
+  function cargaSugerida(ex, week, dia) {
     if (!ex.lift || !ex.pct) return null;
     const e1 = VL.bestE1RM(ex.lift);
     if (!e1) return null;
     const blk = PLAN.meta.bloques.find(b => b.id === week.bloque);
     const idx = blk ? blk.semanas.indexOf(week.n) : 0;
     const relajado = week.descarga || week.taper;
-    const pct = ex.pct + (relajado ? 0 : Math.min(Math.max(idx, 0), 1) * 0.025);
-    const factor = relajado ? 0.925 : 1;
+    const exig = exigente ? 0.025 : 0;   // modo exigente: +2,5% desde la semana 1
+    const pct = ex.pct + exig + (relajado ? 0 : Math.min(Math.max(idx, 0), 1) * 0.025);
+    let factor = relajado ? 0.925 : 1;
+    let notaReadiness = "";
+    // Autorregulación: si es la sesión de HOY y has hecho el check-in, modula la carga
+    if (dia && week.n === VL.currentWeek() && dia.dayIndex === (new Date().getDay() - 1)) {
+      const r = get("readiness." + VL.todayISO());
+      if (r && r.nivel === "ambar") { factor *= 0.95; notaReadiness = " · check-in de hoy: −5%"; }
+      else if (r && r.nivel === "rojo") { factor *= 0.90; notaReadiness = " · check-in de hoy: −10%"; }
+    }
     const peso = Math.max(2.5, Math.round((e1 * pct * factor) / 2.5) * 2.5);
     const pctShow = Math.round(pct * factor * 100);
     return {
       peso, pct: pctShow,
-      title: `${pctShow}% de tu 1RM estimado (${e1} kg)` + (relajado ? " · semana de descarga (−7,5%)" : "")
+      title: `${pctShow}% de tu 1RM estimado (${e1} kg)` + (exig ? " · modo exigente (+2,5%)" : "") + (relajado ? " · semana de descarga (−7,5%)" : "") + notaReadiness
     };
+  }
+
+  // Series de aproximación hasta la carga de trabajo
+  function aproximacion(peso) {
+    const fmt = w => String(w).replace(".", ",");
+    const pasos = ["barra 20 ×10"];
+    [[.45, 5], [.65, 3], [.85, 1]].forEach(([p, reps]) => {
+      const w = Math.round(peso * p / 2.5) * 2.5;
+      if (w > 20 && w < peso) pasos.push(fmt(w) + " ×" + reps);
+    });
+    pasos.push(fmt(peso) + " kg → series de trabajo");
+    return pasos.join("  ·  ");
   }
 
   function collapseList(title, items) {

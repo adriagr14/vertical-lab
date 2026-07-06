@@ -87,12 +87,14 @@
   function init() {
     VL.onChange(scheduleSync);
     if (configured() && VL.get("settings.cloudAuto")) {
-      sync().then(res => {
+      return sync().then(res => {
         if (res.action === "pulled" && window.App && window.App.current) {
           window.App.render(window.App.current()); window.App.updateContext();
         }
-      }).catch(e => console.warn("cloud init:", e.message));
+        return res;
+      }).catch(e => { console.warn("cloud init:", e.message); });
     }
+    return Promise.resolve();
   }
 
   window.VLCloud = { sync, configured, init, setLocalOnly, cfg };

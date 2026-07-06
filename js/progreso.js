@@ -22,10 +22,8 @@ Sections.progreso = function (container) {
 
   const cmjRecs = recs("cmj");
   const bestCmj = cmjRecs.length ? Math.max(...cmjRecs.map(r => r.vals.marca)) : null;
-  const reach = lastVal("alcance");
-  const aroBest = bestAro();
-  const RIM = get("settings.rimHeightCm", 305);
-  const deficit = (reach != null && aroBest != null) ? Math.round((RIM - (reach + aroBest)) * 10) / 10 : null;
+  const da = VL.deficitAro();
+  const deficit = da ? da.deficit : null;
 
   // Extras (entrenamientos opcionales)
   const extras = get("extras") || {};
@@ -38,6 +36,10 @@ Sections.progreso = function (container) {
   grid.appendChild(stat("Déficit a aro", deficit != null ? (deficit <= 0 ? "¡Llegas!" : deficit + " cm") : "—", "objetivo: 0", deficit != null && deficit <= 0 ? "ok" : ""));
   grid.appendChild(stat("Extras completados", extrasDone.length + (extrasAll.length ? " / " + extrasAll.length : ""), "partidos, carrera, gym extra…", ""));
   container.appendChild(grid);
+
+  // 📊 Resumen semanal automático (semana actual vs anterior)
+  const wNow = VL.currentWeek();
+  if (wNow) container.appendChild(renderResumenSemanal(wNow));
 
   /* ---------- Gráficas ---------- */
   container.appendChild(el("div", { class: "card" }, [
@@ -145,14 +147,63 @@ Sections.progreso = function (container) {
     VLCharts.line("chart-prog-bw", bw.map(r => fmtDate(r.date)), [VLCharts.ds("Peso (kg)", bw.map(r => r.vals.marca), VLCharts.C.ok)], { plugins: { legend: { display: false } } });
   })();
 
+  /* ---------- 📊 resumen semanal ---------- */
+  function metricasSemana(n) {
+    const start = VL.weekStartDate(n);
+    if (!start) return null;
+    const end = new Date(start); end.setDate(end.getDate() + 7);
+    const inRange = ds => { if (!ds) return false; const d = new Date(ds + "T00:00:00"); return d >= start && d < end; };
+    // sesiones del plan + RPE medio
+    let done = 0; const rpes = [];
+    for (let d = 0; d < 5; d++) {
+      const s = (get("sessions") || {})["w" + n + "d" + d];
+      if (s && s.done) { done++; if (s.rpe != null) rpes.push(s.rpe); }
+    }
+    // extras hechos
+    const ext = ((get("extras") || {})["w" + n] || []).filter(e => e.done).length;
+    // volumen estimado de gym (mejor serie × sets, desde tus registros/Hevy)
+    let vol = 0;
+    Object.values(get("lifts") || {}).forEach(arr => (arr || []).forEach(en => {
+      if (inRange(en.date)) vol += (en.weight || 0) * (en.reps || 0) * (en.sets || 1);
+    }));
+    return {
+      done, ext, vol: Math.round(vol),
+      rpe: rpes.length ? Math.round(rpes.reduce((a, b) => a + b, 0) / rpes.length * 10) / 10 : null
+    };
+  }
+
+  function renderResumenSemanal(n) {
+    const cur = metricasSemana(n);
+    const prev = n > 1 ? metricasSemana(n - 1) : null;
+    const card = el("div", { class: "card" });
+    card.appendChild(el("div", { class: "card-title", html: "📊 Resumen · Semana " + n }));
+
+    const linea = (icon, label, val, delta) => el("div", { class: "flex-between", style: "padding:5px 0;border-bottom:1px solid var(--border);font-size:.9rem" }, [
+      el("span", { class: "dim", text: icon + " " + label }),
+      el("span", {}, [
+        el("strong", { text: val }),
+        delta ? el("span", { style: "margin-left:8px;font-size:.8rem;color:" + delta.color, text: delta.txt }) : null
+      ])
+    ]);
+
+    card.appendChild(linea("✅", "Sesiones del plan", cur.done + " / 5"));
+    card.appendChild(linea("➕", "Extras completados", String(cur.ext)));
+
+    let deltaVol = null, avisoTendon = null;
+    if (prev && prev.vol > 0 && cur.vol > 0) {
+      const p = Math.round(((cur.vol - prev.vol) / prev.vol) * 100);
+      deltaVol = { txt: (p >= 0 ? "▲ +" : "▼ ") + p + "% vs S" + (n - 1), color: p > 20 ? "var(--warn)" : p >= 0 ? "var(--ok)" : "var(--info)" };
+      if (p > 20) avisoTendon = "⚠️ El volumen ha subido +" + p + "% en una semana: los tendones agradecen subidas <20%. Vigila rodilla/Aquiles.";
+    }
+    card.appendChild(linea("🏋️", "Volumen gym estimado", cur.vol ? cur.vol.toLocaleString("es-ES") + " kg" : "—", deltaVol));
+    card.appendChild(linea("📈", "RPE medio de sesiones", cur.rpe != null ? String(cur.rpe) : "—"));
+    if (avisoTendon) card.appendChild(el("p", { class: "mb-0", style: "margin-top:8px;font-size:.82rem;color:var(--warn)", text: avisoTendon }));
+    card.appendChild(el("small", { class: "muted", style: "display:block;margin-top:8px", text: "El volumen se estima con tu mejor serie × nº de series de cada ejercicio (registros propios + Hevy)." }));
+    return card;
+  }
+
   /* ---------- helpers ---------- */
   function recs(id) { return (get("tests." + id) || []).slice().sort((a, b) => a.date.localeCompare(b.date)); }
-  function lastVal(id) { const r = recs(id); return r.length ? r[r.length - 1].vals.marca : null; }
-  function bestAro() {
-    let b = null;
-    ["cmj", "saltoCarrera2", "saltoCarrera1"].forEach(id => { const r = recs(id); r.forEach(x => { if (x.vals.marca != null && (b == null || x.vals.marca > b)) b = x.vals.marca; }); });
-    return b;
-  }
   function liftHist(id) { return (get("lifts." + id) || []).slice().sort((a, b) => a.date.localeCompare(b.date)); }
   function liftSeries(id) {
     const base = (get("liftBaseline") || {})[id];

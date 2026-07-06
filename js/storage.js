@@ -13,6 +13,7 @@
     settings: { athleteWeightKg: 82, rimHeightCm: 305 },
     sessions: {},        // { "s1d2": { done:true, rpe:8, note:"", date:"..." } }
     extras: {},          // { "w3": [ {id, tipo, nombre, nota, done, date} ] } — entrenos opcionales por semana
+    readiness: {},       // { "2026-07-06": { sueno:1-3, agujetas:1-3, energia:1-3, score, nivel } }
     tests: {},           // { cmj: [ {date, value, ...} ], ... }
     lifts: {},           // { sentadilla: [ {date, weight, sets, reps, rpe} ], ... }
     liftBaseline: {},    // cargas iniciales declaradas en §4.9
@@ -217,6 +218,39 @@
     return 3;
   }
 
+  // Déficit hasta el aro, unificado: usa el mejor registro entre el TOQUE
+  // directo en pista (tests.toque, altura absoluta tocada) y el cálculo
+  // alcance de pie + mejor salto (CMJ / carrera). null si no hay datos.
+  function deficitAro() {
+    const db = load();
+    const t = db.tests || {};
+    const best = id => {
+      let b = null;
+      (t[id] || []).forEach(r => { const v = r.vals && r.vals.marca; if (v != null && (b == null || v > b)) b = v; });
+      return b;
+    };
+    const rim = (db.settings && db.settings.rimHeightCm) || 305;
+    const alc = (t.alcance || []).slice().sort((a, b) => a.date.localeCompare(b.date));
+    const alcance = alc.length ? alc[alc.length - 1].vals.marca : null;
+    const toque = best("toque");
+
+    let saltoTotal = null, saltoNombre = null;
+    [["cmj", "CMJ"], ["saltoCarrera2", "salto con carrera (2 pies)"], ["saltoCarrera1", "salto con carrera (1 pierna)"]].forEach(([id, nom]) => {
+      const v = best(id);
+      if (v != null && alcance != null) {
+        const total = alcance + v;
+        if (saltoTotal == null || total > saltoTotal) { saltoTotal = total; saltoNombre = nom; }
+      }
+    });
+
+    let mejorTotal = null, base = null;
+    if (toque != null) { mejorTotal = toque; base = "toque directo en pista"; }
+    if (saltoTotal != null && (mejorTotal == null || saltoTotal > mejorTotal)) { mejorTotal = saltoTotal; base = "alcance + " + saltoNombre; }
+    if (mejorTotal == null) return null;
+
+    return { rim, mejorTotal, deficit: Math.round((rim - mejorTotal) * 10) / 10, base, toque, alcance };
+  }
+
   // Mejor 1RM estimado de un levantamiento: máximo entre el punto de partida
   // y todo el historial registrado/sincronizado desde Hevy. Base de las
   // cargas sugeridas del plan (se actualiza sola al sincronizar).
@@ -239,7 +273,7 @@
     exportJSON, importJSON, reset,
     suppressTouch, onChange, replaceAll,
     el, accordionHead, toast, todayISO, fmtDate, epley1RM, copyText,
-    currentWeek, blockForWeek, weekStartDate, bestE1RM,
+    currentWeek, blockForWeek, weekStartDate, bestE1RM, deficitAro,
     DEFAULT_DB
   };
 })();

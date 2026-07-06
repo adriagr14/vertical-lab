@@ -39,7 +39,9 @@ Sections.tests = function (container) {
     const v = best(t.id, "marca", "alto");
     if (v != null && (!bestAro || v > bestAro.jump)) bestAro = { jump: v, nombre: t.nombre };
   });
-  const deficit = (reach != null && bestAro) ? Math.round((RIM - (reach + bestAro.jump)) * 10) / 10 : null;
+  // Déficit unificado: toque directo en pista o alcance + mejor salto (el mayor)
+  const da = VL.deficitAro();
+  const deficit = da ? da.deficit : null;
 
   const cmj = latest("cmj"), sj = latest("sj");
   const eur = (cmj && sj) ? Math.round((cmj / sj) * 100) / 100 : null;
@@ -77,8 +79,8 @@ Sections.tests = function (container) {
       ])
     ]),
     deficit != null
-      ? el("small", { class: "muted", text: `Cálculo: ${RIM} − (alcance ${reach} + mejor salto ${bestAro.jump} · ${bestAro.nombre})` })
-      : el("small", { class: "muted", text: "Fórmula: altura de aro − (alcance de pie + salto). Usa tu mejor salto al aro disponible." })
+      ? el("small", { class: "muted", text: `Mejor registro: ${da.mejorTotal} cm (${da.base}) · aro ${RIM} cm` })
+      : el("small", { class: "muted", text: "Se calcula con tu toque directo en pista o con alcance de pie + salto (el mejor de los dos)." })
   ]));
 
   metrics.appendChild(deriv("Ratio CMJ–SJ (uso del SSC)", eur != null ? eur : "—",

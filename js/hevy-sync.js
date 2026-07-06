@@ -85,5 +85,26 @@
     return Object.assign(res, { unmapped, workouts: workouts.length });
   }
 
-  window.VLHevySync = { fetchAllWorkouts, buildGroups, sync };
+  // Sincronización automática silenciosa al abrir la web: como mucho una vez
+  // al día por dispositivo. Si trae series nuevas, avisa y refresca la vista.
+  async function autoSync() {
+    const key = VL.get("settings.hevyApiKey");
+    if (!key) return null;
+    const today = VL.todayISO();
+    if (VL.get("settings.hevyLastSync") === today) return null;
+    try {
+      const res = await sync(key);
+      VL.suppressTouch(() => VL.set("settings.hevyLastSync", today));
+      if (res.added > 0) {
+        VL.toast("⬇️ Hevy: " + res.added + " series nuevas sincronizadas");
+        if (window.App && window.App.current) window.App.render(window.App.current());
+      }
+      return res;
+    } catch (e) {
+      console.warn("Hevy auto-sync:", e.message);   // silencioso: no molestar al usuario
+      return null;
+    }
+  }
+
+  window.VLHevySync = { fetchAllWorkouts, buildGroups, sync, autoSync };
 })();

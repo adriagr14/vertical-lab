@@ -81,6 +81,18 @@ window.TESTS = [
     ]
   },
   {
+    id: "toque", nombre: "Toque máximo en pista", icono: "🎯", cat: "Salto",
+    campos: [{ key: "marca", label: "Altura tocada", unidad: "cm", paso: "0.5" }],
+    mejor: "alto",
+    desc: "El dato más directo hacia el mate: la altura ABSOLUTA que tocas con carrera (tablero, aro, tiza en la pared). Regístralo tras cada sesión de pista con intentos máximos — alimenta el contador del inicio.",
+    protocolo: [
+      "Con carrera de aproximación, salta y toca lo más alto posible (aro = 305 cm).",
+      "Referencias útiles: la parte baja del tablero suele estar a ~290 cm; el aro a 305.",
+      "Usa tiza o cinta si quieres precisión; si no, estima contra el tablero/aro.",
+      "Registra tu MEJOR toque del día, fresco (no tras el acondicionamiento)."
+    ]
+  },
+  {
     id: "dropJump", nombre: "Drop Jump · RSI", icono: "⚡", cat: "Salto",
     campos: [
       { key: "altura", label: "Altura de salto", unidad: "cm", paso: "0.1" },

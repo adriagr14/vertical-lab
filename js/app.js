@@ -82,8 +82,13 @@
     const initial = location.hash.replace("#", "");
     go(SECTIONS.includes(initial) ? initial : "dashboard");
 
-    // Sincronización en la nube (si está configurada)
-    if (window.VLCloud && typeof VLCloud.init === "function") { try { VLCloud.init(); } catch (e) { console.warn(e); } }
+    // Sincronización al abrir: primero la nube (datos entre dispositivos),
+    // después Hevy (entrenos nuevos, máx. 1 vez/día) — en cadena para evitar carreras.
+    try {
+      Promise.resolve(window.VLCloud && VLCloud.init && VLCloud.init())
+        .then(() => { if (window.VLHevySync && VLHevySync.autoSync) return VLHevySync.autoSync(); })
+        .catch(e => console.warn(e));
+    } catch (e) { console.warn(e); }
   }
 
   window.App = { go, render, updateContext, current: () => current };

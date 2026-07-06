@@ -56,6 +56,12 @@ Sections.dashboard = function (container) {
   grid.appendChild(stat("Próximo test", nextTest, "", ""));
   container.appendChild(grid);
 
+  // 🎯 Contador hacia el mate + registro rápido de toque
+  container.appendChild(renderHeroMate());
+
+  // 🩺 Check-in diario de readiness (autorregulación)
+  container.appendChild(renderReadiness());
+
   // Sesión de hoy (conectada al plan)
   const jsDay = new Date().getDay();            // 0=Dom … 6=Sáb
   const dayIndex = jsDay - 1;                    // Lun=0 … Vie=4
@@ -70,11 +76,13 @@ Sections.dashboard = function (container) {
   if (todaySession) {
     const key = "w" + week + "d" + dayIndex;
     const done = !!(get("sessions." + key) || {}).done;
+    const dobleHoy = !!(get("settings.modoExigente") && todaySession.gymExtra);
     todayCard.appendChild(el("div", { class: "flex mt-1", style: "gap:10px" }, [
       el("span", { style: "font-size:1.6rem", text: todaySession.icono }),
       el("div", {}, [
         el("div", { style: "font-weight:700", text: todaySession.nombre }),
-        el("small", { class: "dim", text: todaySession.foco })
+        el("small", { class: "dim", text: todaySession.foco }),
+        dobleHoy ? el("div", { class: "mt-1" }, el("span", { class: "badge b3", text: "🔥 Doble sesión: + gym tren superior" })) : null
       ]),
       done ? el("span", { class: "badge ok", text: "✓ Hecha", style: "margin-left:auto" }) : null
     ]));
@@ -115,6 +123,94 @@ Sections.dashboard = function (container) {
       [VLCharts.ds("1RM est. (kg)", valid.map(s => s.y), VLCharts.C.info)], { plugins: { legend: { display: false } } });
   }
 
+  /* ---------- 🎯 héroe: camino al mate ---------- */
+  function renderHeroMate() {
+    const da = VL.deficitAro();
+    const card = el("div", { class: "card", style: "border:1px solid var(--accent);background:linear-gradient(135deg, rgba(255,77,61,.10), transparent 55%), var(--surface)" });
+    card.appendChild(el("div", { style: "font-size:.74rem;color:var(--text-mute);text-transform:uppercase;letter-spacing:.08em;font-weight:700", text: "🎯 Camino al mate" }));
+
+    if (da) {
+      const tocaAro = da.deficit <= 0;
+      card.appendChild(el("div", {
+        style: "font-family:var(--font-display);font-size:2.3rem;font-weight:700;line-height:1.15;color:" + (tocaAro ? "var(--ok)" : "var(--accent-2)"),
+        text: tocaAro ? "¡Tocas aro! +" + String(Math.abs(da.deficit)).replace(".", ",") + " cm de margen" : "A " + String(da.deficit).replace(".", ",") + " cm del aro"
+      }));
+      const mateFalta = Math.round((da.rim + 15 - da.mejorTotal) * 10) / 10;
+      card.appendChild(el("div", { class: "dim", style: "font-size:.86rem;margin-top:2px", text: mateFalta > 0
+        ? "Para el mate necesitas ~15 cm por encima del aro: te faltan " + String(mateFalta).replace(".", ",") + " cm."
+        : "🏀 ¡Margen de mate conseguido! A por él en pista." }));
+      card.appendChild(el("small", { class: "muted", text: "Mejor registro: " + da.mejorTotal + " cm (" + da.base + ") · aro a " + da.rim + " cm" }));
+    } else {
+      card.appendChild(el("p", { class: "dim mb-0", style: "font-size:.88rem", text: "Registra tu primer toque aquí abajo (o alcance + salto en Tests) para activar el contador." }));
+    }
+
+    // Registro rápido: "¿a cuánto llegaste hoy?"
+    const inp = el("input", { type: "number", step: "0.5", placeholder: "¿A cuánto llegaste hoy? (cm, ej. 298)" });
+    const btn = el("button", { class: "btn btn-primary btn-sm", text: "Guardar toque", onclick: () => {
+      const v = parseFloat(inp.value);
+      if (!v || v < 150 || v > 420) { VL.toast("Pon la altura tocada en cm (ej. 298)"); return; }
+      const arr = get("tests.toque") || [];
+      arr.push({ date: VL.todayISO(), fase: "", note: "registro rápido", vals: { marca: v } });
+      set("tests.toque", arr);
+      VL.toast("🎯 Toque registrado: " + v + " cm");
+      window.App.render("dashboard");
+    }});
+    card.appendChild(el("div", { class: "row mt-2" }, [inp, el("div", { style: "flex:0 0 auto" }, btn)]));
+    return card;
+  }
+
+  /* ---------- 🩺 check-in de readiness ---------- */
+  function renderReadiness() {
+    const hoy = todayISO();
+    const saved = get("readiness." + hoy);
+    const card = el("div", { class: "card" });
+
+    if (saved && saved.nivel) {
+      const info = saved.nivel === "verde"
+        ? { b: "ok", t: "💚 Día verde — a por todas, cargas completas." }
+        : saved.nivel === "ambar"
+          ? { b: "warn", t: "🟡 Día regular — cargas de hoy −5%; plantéate saltarte los extras." }
+          : { b: "warn", t: "🔴 Día rojo — prioriza técnica y movilidad; si entrenas, −10% y sin saltos máximos." };
+      card.appendChild(el("div", { class: "flex-between flex-wrap" }, [
+        el("div", { class: "card-title mb-0", html: "🩺 Check-in de hoy" }),
+        el("button", { class: "btn btn-sm btn-ghost", text: "Cambiar", onclick: () => { set("readiness." + hoy, null); window.App.render("dashboard"); } })
+      ]));
+      card.appendChild(el("div", { class: "mt-1" }, el("span", { class: "badge " + info.b, style: "white-space:normal;line-height:1.4", text: info.t })));
+      return card;
+    }
+
+    card.appendChild(el("div", { class: "card-title mb-0", html: "🩺 ¿Cómo llegas hoy?" }));
+    card.appendChild(el("p", { class: "mt-1 dim", style: "font-size:.84rem", text: "30 segundos: la web ajusta las cargas de HOY a tu estado (autorregulación)." }));
+    const state = {};
+    const preguntas = [
+      ["sueno", "😴 Sueño", ["Mal", "Normal", "Bien"]],
+      ["agujetas", "🦵 Agujetas / molestias", ["Muchas", "Algunas", "Ninguna"]],
+      ["energia", "⚡ Energía", ["Baja", "Normal", "Alta"]]
+    ];
+    preguntas.forEach(([key, label, ops]) => {
+      const row = el("div", { class: "flex flex-wrap", style: "gap:6px;margin-top:8px;align-items:center" });
+      row.appendChild(el("span", { style: "font-size:.85rem;font-weight:600;min-width:170px", text: label }));
+      ops.forEach((op, i) => {
+        const b = el("button", { class: "btn btn-sm", text: op });
+        b.addEventListener("click", () => {
+          state[key] = i + 1;
+          row.querySelectorAll("button").forEach(x => x.classList.remove("btn-primary"));
+          b.classList.add("btn-primary");
+          if (state.sueno && state.agujetas && state.energia) {
+            const score = state.sueno + state.agujetas + state.energia;
+            const nivel = score >= 8 ? "verde" : score >= 5 ? "ambar" : "rojo";
+            set("readiness." + hoy, { sueno: state.sueno, agujetas: state.agujetas, energia: state.energia, score, nivel });
+            VL.toast(nivel === "verde" ? "💚 Día verde: a tope" : nivel === "ambar" ? "🟡 Día regular: cargas −5% hoy" : "🔴 Día rojo: cuida el cuerpo");
+            window.App.render("dashboard");
+          }
+        });
+        row.appendChild(b);
+      });
+      card.appendChild(row);
+    });
+    return card;
+  }
+
   function stat(label, value, unit, cls, sub) {
     return el("div", { class: "stat " + cls }, [
       el("div", { class: "label", text: label }),
@@ -122,13 +218,4 @@ Sections.dashboard = function (container) {
       sub ? el("div", { class: "sub", text: sub }) : null
     ]);
   }
-};
-
-/* Helper compartido de placeholder de fase, usado por varias secciones */
-window.phase = function (msg, n) {
-  return VL.el("div", { class: "placeholder" }, [
-    VL.el("span", { class: "ph-ico", text: "🧱" }),
-    VL.el("div", { text: msg }),
-    VL.el("span", { class: "ph-tag", text: "Se construye en la fase " + n })
-  ]);
 };
