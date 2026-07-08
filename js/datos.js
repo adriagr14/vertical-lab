@@ -104,9 +104,9 @@ Sections.datos = function (container) {
       el("ol", { style: "padding-left:18px;margin:0;color:var(--text-dim)" }, [
         el("li", {}, [el("span", { text: "Crea un proyecto en " }), el("a", { href: "https://supabase.com", target: "_blank", rel: "noopener", style: "color:var(--accent-2)", text: "supabase.com" }), el("span", { text: " (gratis)." })]),
         el("li", { html: "En <b>SQL Editor</b>, ejecuta esto:" }),
-        el("li", {}, el("pre", { style: "white-space:pre-wrap;background:var(--bg-3);padding:8px;border-radius:8px;font-size:.78rem", text: "create table vl_state (\n  id text primary key,\n  data jsonb,\n  updated_at int8\n);\nalter table vl_state disable row level security;\ngrant all on table vl_state to anon;" })),
+        el("li", {}, el("pre", { style: "white-space:pre-wrap;background:var(--bg-3);padding:8px;border-radius:8px;font-size:.78rem", text: "create table vl_state (\n  id text primary key,\n  data jsonb,\n  updated_at int8\n);\ngrant all on table vl_state to anon;\nalter table vl_state enable row level security;\ncreate policy \"sync con codigo\" on vl_state\n  for all to anon\n  using (id = (current_setting('request.headers', true)::json ->> 'x-sync-code'))\n  with check (id = (current_setting('request.headers', true)::json ->> 'x-sync-code'));" })),
         el("li", { html: "En <b>Project Settings → API</b>: copia <b>Project URL</b> y la <b>anon public key</b> aquí arriba." }),
-        el("li", { html: "Inventa un <b>código de sync</b> largo (p. ej. <code>adria-salto-9f3k2</code>) y pon el MISMO en cada dispositivo." }),
+        el("li", { html: "Inventa un <b>código de sync</b> largo, solo letras/números/guiones (p. ej. <code>adria-salto-9f3k2</code>) y pon el MISMO en cada dispositivo. Es tu contraseña: la política RLS lo verifica en el servidor." }),
         el("li", { text: "Marca 'Sincronizar automáticamente' y pulsa Guardar. ¡Listo!" })
       ]),
       el("p", { class: "muted", style: "margin-top:6px", text: "Privacidad: tus datos de entrenamiento (no sensibles) van a tu proyecto. La clave de Hevy NO se sincroniza, se queda en cada dispositivo." })

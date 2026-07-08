@@ -24,7 +24,9 @@
   }
   function configured() { const c = cfg(); return !!(c.url && c.key && c.code); }
   function headers(c) {
-    return { "apikey": c.key, "Authorization": "Bearer " + c.key, "Content-Type": "application/json", "Accept": "application/json" };
+    // x-sync-code: tu código viaja como cabecera y la política RLS de Supabase
+    // lo verifica en el servidor — sin él, la tabla no devuelve ni acepta nada.
+    return { "apikey": c.key, "Authorization": "Bearer " + c.key, "Content-Type": "application/json", "Accept": "application/json", "x-sync-code": c.code };
   }
   function setLocalOnly(key, val) { VL.suppressTouch(() => VL.set("settings." + key, val)); }
 
