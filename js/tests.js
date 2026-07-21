@@ -180,10 +180,12 @@ Sections.tests = function (container) {
       history = wrap;
     }
 
-    // Gráfica
+    // Gráfica (con 1 registro, avisar de que aparecerá con el 2º)
     const chart = recs.length >= 2
       ? el("div", { class: "chart-box mt-2", style: "height:180px" }, el("canvas", { id: "chart-test-" + t.id }))
-      : null;
+      : recs.length === 1
+        ? el("small", { class: "muted", style: "display:block;margin-top:8px", text: "✓ Registro guardado (línea base). La gráfica de evolución aparecerá con el 2º registro." })
+        : null;
 
     // Protocolo plegable
     const proto = el("ul", { class: "hidden-body", style: "margin:8px 0 0;padding-left:18px" },

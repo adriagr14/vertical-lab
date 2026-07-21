@@ -41,11 +41,24 @@ Sections.progreso = function (container) {
   const wNow = VL.currentWeek();
   if (wNow) container.appendChild(renderResumenSemanal(wNow));
 
+  // 🧪 Últimos tests registrados (cualquier test → repercusión inmediata aquí)
+  const ultimosTests = renderUltimosTests();
+  if (ultimosTests) container.appendChild(ultimosTests);
+
   /* ---------- Gráficas ---------- */
   container.appendChild(el("div", { class: "card" }, [
     el("div", { class: "card-title", html: "📈 Salto vertical" }),
     chartBoxOrEmpty("chart-prog-salto", cmjRecs.length || recs("saltoCarrera2").length)
   ]));
+
+  // 🎯 Evolución del toque máximo (camino al mate), con línea del aro
+  const toqueRecs = recs("toque");
+  if (toqueRecs.length) {
+    container.appendChild(el("div", { class: "card" }, [
+      el("div", { class: "card-title", html: "🎯 Toque máximo · camino al mate" }),
+      el("div", { class: "chart-box" }, el("canvas", { id: "chart-prog-toque" }))
+    ]));
+  }
 
   container.appendChild(el("div", { class: "card" }, [
     el("div", { class: "card-title", html: "🏋️ 1RM estimado (levantamientos clave)" }),
@@ -131,6 +144,16 @@ Sections.progreso = function (container) {
     if (sc2.length) ds.push(VLCharts.ds("Salto carrera 2 pies", alignToDates(sc2, labels), VLCharts.C.info));
     VLCharts.line("chart-prog-salto", labels.map(fmtDate), ds);
   })();
+  // Toque máximo (con línea de referencia del aro)
+  (function () {
+    const t = recs("toque");
+    if (!t.length) return;
+    const rim = get("settings.rimHeightCm", 305);
+    VLCharts.line("chart-prog-toque", t.map(r => fmtDate(r.date)), [
+      VLCharts.ds("Toque (cm)", t.map(r => r.vals.marca), VLCharts.C.accent),
+      Object.assign(VLCharts.ds("Aro (" + rim + " cm)", t.map(() => rim), VLCharts.C.ok), { borderDash: [6, 6], pointRadius: 0, fill: false })
+    ]);
+  })();
   // 1RM
   (function () {
     const lifts = [["sentadilla", VLCharts.C.accent], ["pm-hex", VLCharts.C.info], ["hip-thrust", VLCharts.C.purple]];
@@ -199,6 +222,41 @@ Sections.progreso = function (container) {
     card.appendChild(linea("📈", "RPE medio de sesiones", cur.rpe != null ? String(cur.rpe) : "—"));
     if (avisoTendon) card.appendChild(el("p", { class: "mb-0", style: "margin-top:8px;font-size:.82rem;color:var(--warn)", text: avisoTendon }));
     card.appendChild(el("small", { class: "muted", style: "display:block;margin-top:8px", text: "El volumen se estima con tu mejor serie × nº de series de cada ejercicio (registros propios + Hevy)." }));
+    return card;
+  }
+
+  /* ---------- 🧪 últimos tests registrados ---------- */
+  function renderUltimosTests() {
+    const rows = [];
+    (window.TESTS || []).forEach(t => {
+      (get("tests." + t.id) || []).forEach(r => {
+        const valor = (t.campos || [])
+          .map(c => (r.vals && r.vals[c.key] != null) ? String(r.vals[c.key]).replace(".", ",") + " " + c.unidad : null)
+          .filter(Boolean).join(" · ");
+        if (valor) rows.push({ date: r.date || "", icono: t.icono, nombre: t.nombre, valor, fase: r.fase });
+      });
+    });
+    if (!rows.length) return null;
+    rows.sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+
+    const card = el("div", { class: "card" });
+    card.appendChild(el("div", { class: "card-title", html: "🧪 Últimos tests registrados" }));
+    const wrap = el("div", { class: "table-wrap" });
+    const table = el("table");
+    table.appendChild(el("thead", {}, el("tr", {}, ["Fecha", "Test", "Marca"].map(h => el("th", { text: h })))));
+    const tb = el("tbody");
+    rows.slice(0, 6).forEach(r => tb.appendChild(el("tr", {}, [
+      el("td", { text: r.date ? fmtDate(r.date) : "—" }),
+      el("td", { style: "font-weight:600;font-size:.88rem", text: r.icono + " " + r.nombre }),
+      el("td", {}, [
+        el("strong", { text: r.valor }),
+        r.fase ? el("span", { class: "badge", style: "margin-left:8px", text: r.fase }) : null
+      ])
+    ])));
+    table.appendChild(tb);
+    wrap.appendChild(table);
+    card.appendChild(wrap);
+    card.appendChild(el("small", { class: "muted", style: "display:block;margin-top:6px", text: "Cada test tiene su gráfica de evolución en la sección Tests (aparece a partir del 2º registro)." }));
     return card;
   }
 
